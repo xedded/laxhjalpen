@@ -14,50 +14,36 @@ export default function NavigationHeader({ showBackButton = true }: NavigationHe
   };
 
   return (
-    <header className="bg-gradient-to-r from-purple-600 via-pink-500 to-blue-500 shadow-2xl border-b-4 border-purple-300">
-      <div className="container mx-auto px-4 py-4">
+    <header className="bg-indigo-600 shadow-lg border-b border-indigo-700">
+      <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Left side - Home button and Logo */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             {showBackButton && (
               <button
                 onClick={goHome}
-                className="bg-white/20 hover:bg-white/30 text-white p-3 rounded-xl transition-all transform hover:scale-110 shadow-lg"
+                className="bg-indigo-500 hover:bg-indigo-400 text-white p-2 rounded-lg transition-colors"
                 aria-label="Tillbaka till startsidan"
               >
-                <span className="text-2xl">🏠</span>
+                <span className="text-lg">🏠</span>
               </button>
             )}
 
-            {/* Cool Logo */}
+            {/* Logo */}
             <div
-              className="flex items-center space-x-3 cursor-pointer group"
+              className="flex items-center space-x-2 cursor-pointer"
               onClick={goHome}
             >
-              <div className="relative">
-                {/* Logo icon with glow effect */}
-                <div className="text-4xl group-hover:animate-bounce">🧠</div>
-                <div className="absolute -top-1 -right-1 text-lg">✨</div>
-              </div>
+              <div className="text-2xl">📚</div>
 
               <div className="text-white">
-                <h1 className="text-2xl md:text-3xl font-bold tracking-wider">
-                  <span className="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
-                    Läx
-                  </span>
-                  <span className="text-white">hjälpen</span>
+                <h1 className="text-xl md:text-2xl font-bold">
+                  Läxhjälpen
                 </h1>
-                <p className="text-xs md:text-sm text-purple-100 font-medium">
-                  AI-driven lärande för alla! 🚀
+                <p className="text-xs text-indigo-200">
+                  AI-driven studiehjälp
                 </p>
               </div>
-            </div>
-          </div>
-
-          {/* Right side - Status/Progress indicator (optional) */}
-          <div className="hidden md:flex items-center space-x-2">
-            <div className="bg-white/20 px-4 py-2 rounded-xl">
-              <span className="text-white font-bold text-sm">🎯 Redo att lära!</span>
             </div>
           </div>
         </div>

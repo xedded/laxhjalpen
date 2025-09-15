@@ -74,11 +74,11 @@ export default function QuizSetupPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-purple-800 mb-4">
-              🎯 Välj förhörstyp 🎯
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              Välj förhörstyp
             </h1>
-            <p className="text-purple-700 mb-6 text-lg font-semibold">
-              Baserat på din uppladdade läxa har vi skapat två coola förhör för dig! 🚀
+            <p className="text-gray-600 mb-4">
+              Baserat på din uppladdade läxa har vi skapat två olika förhör för dig
             </p>
             <div className="bg-white rounded-lg p-4 mb-6 shadow-sm">
               <div className="flex flex-wrap justify-center gap-4 text-sm">

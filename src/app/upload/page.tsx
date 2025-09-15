@@ -148,11 +148,11 @@ export default function UploadPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-purple-800 mb-4">
-              📚 Ladda upp din läxa 🚀
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              Ladda upp din läxa
             </h1>
-            <p className="text-purple-700 text-lg font-semibold">
-              Fotografera eller ladda upp en bild så skapar AI:n coola frågor åt dig! 🎯
+            <p className="text-gray-600">
+              Fotografera eller ladda upp en bild av dina glosor eller läxtext
             </p>
           </div>
 
@@ -237,7 +237,7 @@ export default function UploadPage() {
                       </div>
                     </span>
                   ) : (
-                    '🚀 Analysera och skapa förhör'
+                    'Analysera och skapa förhör'
                   )}
                 </button>
 
