@@ -313,6 +313,7 @@ export async function analyzeOralAnswer(
   isCorrect: boolean;
   feedback: string;
   score: number; // 0-100
+  isValidTranslation?: boolean; // true if it's a correct translation but not the target word
 }> {
   try {
     // Try GPT-4 first for best quality feedback
@@ -326,9 +327,14 @@ export async function analyzeOralAnswer(
 
           ${vocabularyPair ?
             `VIKTIGT: Detta är en glosfråga baserad på exakt ordpar från elevens läxbild.
-            Korrekt svar är: "${expectedAnswer}" (från ordparet: ${vocabularyPair.word1} ↔ ${vocabularyPair.word2})
-            Acceptera ENDAST exakt detta ord eller mycket nära varianter (t.ex. plural/singular).
-            Acceptera INTE synonymer eller andra översättningar - eleven ska lära sig exakt det som står i glosorna.`
+            Målordet från glosorna: "${expectedAnswer}" (från ordparet: ${vocabularyPair.word1} ↔ ${vocabularyPair.word2})
+
+            Bedöm svaret enligt följande kriterier:
+            1. Om svaret är exakt målordet eller mycket nära variant (plural/singular) → isCorrect: true, score: 90-100
+            2. Om svaret är en korrekt översättning men INTE målordet → isCorrect: false, isValidTranslation: true, score: 40-60
+            3. Om svaret är helt fel → isCorrect: false, isValidTranslation: false, score: 0-30
+
+            För scenario 2, ge pedagogisk feedback som förklarar att svaret är en bra översättning men inte det ord eleven ska lära sig från glosorna.`
             :
             'För icke-glosfrågor, acceptera korrekta svar och nära varianter.'
           }
@@ -348,7 +354,8 @@ Bedöm elevens svar och returnera JSON:
 {
   "isCorrect": true/false,
   "feedback": "pedagogisk feedback på svenska",
-  "score": nummer mellan 0-100
+  "score": nummer mellan 0-100,
+  "isValidTranslation": true/false // endast för glosfrågor där svaret är korrekt översättning men inte målordet
 }
 
 Kriterier för bedömning:

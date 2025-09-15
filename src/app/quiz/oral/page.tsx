@@ -26,6 +26,7 @@ export default function OralQuizPage() {
   const [score, setScore] = useState(0);
   const [totalPoints, setTotalPoints] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [isValidTranslation, setIsValidTranslation] = useState<boolean>(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const router = useRouter();
@@ -117,6 +118,7 @@ export default function OralQuizPage() {
 
       setTranscription(result.transcription || '');
       setFeedback(result.feedback);
+      setIsValidTranslation(result.isValidTranslation || false);
       setIsAnalyzing(false);
 
       // Add points to total (0-100 per question)
@@ -151,6 +153,7 @@ export default function OralQuizPage() {
       setCurrentQuestion(currentQuestion + 1);
       setFeedback(null);
       setTranscription('');
+      setIsValidTranslation(false);
     }
   };
 
@@ -252,14 +255,34 @@ export default function OralQuizPage() {
               )}
 
               {feedback && (
-                <div className={`p-4 rounded-lg ${
-                  feedback.includes('Bra') || feedback.includes('Rätt') || feedback.includes('bra')
-                    ? 'bg-green-100 text-green-800'
-                    : feedback.includes('fel') || feedback.includes('Fel') || feedback.includes('Inte')
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-yellow-100 text-yellow-800'
+                <div className={`p-6 rounded-2xl border-3 ${
+                  feedback.includes('Bra') || feedback.includes('Rätt') || feedback.includes('bra') || feedback.includes('🌟')
+                    ? 'bg-green-100 border-green-400 text-green-900'
+                    : isValidTranslation
+                    ? 'bg-orange-100 border-orange-400 text-orange-900'
+                    : 'bg-red-100 border-red-400 text-red-900'
                 }`}>
-                  {feedback}
+                  <div className="flex items-start space-x-3">
+                    <div className="text-3xl">
+                      {feedback.includes('Bra') || feedback.includes('Rätt') || feedback.includes('bra') || feedback.includes('🌟')
+                        ? '🎉'
+                        : isValidTranslation
+                        ? '🤔'
+                        : '💪'
+                      }
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-lg mb-2">
+                        {feedback.includes('Bra') || feedback.includes('Rätt') || feedback.includes('bra') || feedback.includes('🌟')
+                          ? '🌟 Fantastiskt!'
+                          : isValidTranslation
+                          ? '🎯 Nästan rätt!'
+                          : '💪 Fortsätt träna!'
+                        }
+                      </p>
+                      <p className="text-lg">{feedback}</p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
