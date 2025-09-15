@@ -98,7 +98,7 @@ export default function UploadPage() {
 
       // Call AI analysis API with longer timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for basic analysis
+      const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout to avoid premature fallback
 
       const response = await fetch('/api/analyze-image', {
         method: 'POST',

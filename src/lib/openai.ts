@@ -51,29 +51,44 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
 
     console.log('🚀 Making GPT-4o Vision API call...');
 
-    // Use faster GPT-4o-mini for basic analysis
+    // Use GPT-4o for reliable image analysis
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `Se på bilden och skapa 5 enkla frågor. JSON endast:
-              {"subject":"ämne","questions":[{"id":1,"question":"fråga?","options":["a","b","c","d"],"correctAnswer":1,"expectedAnswer":"svar","explanation":"kort förklaring"}]}`
+              text: `Analysera bilden och skapa 8 enkla frågor baserat på innehållet. Returnera endast JSON:
+
+              {
+                "subject": "identifierat ämne",
+                "difficulty": "Lätt",
+                "isVocabulary": false,
+                "questions": [
+                  {
+                    "id": 1,
+                    "question": "fråga baserad på bildinnehåll",
+                    "options": ["alternativ 1", "alternativ 2", "alternativ 3", "alternativ 4"],
+                    "correctAnswer": 0,
+                    "expectedAnswer": "enkelt svar",
+                    "explanation": "kort förklaring"
+                  }
+                ]
+              }`
             },
             {
               type: "image_url",
               image_url: {
                 url: `data:image/jpeg;base64,${imageBase64}`,
-                detail: "low" // Use low detail for faster processing
+                detail: "auto" // Let OpenAI decide optimal detail
               }
             }
           ]
         }
       ],
-      max_tokens: 400,
+      max_tokens: 600,
       temperature: 0.1,
     });
 
