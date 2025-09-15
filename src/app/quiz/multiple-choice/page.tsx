@@ -122,42 +122,47 @@ export default function MultipleChoicePage() {
 
   if (showResults) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-200 via-pink-100 to-blue-200 flex items-center justify-center">
-        <div className="max-w-md mx-auto bg-white rounded-3xl shadow-2xl p-10 text-center border-4 border-purple-300">
-          <div className="text-8xl mb-6 animate-bounce">
-            {score >= 8 ? '🎉' : score >= 6 ? '🎊' : score >= 4 ? '👏' : '💪'}
+      <div className="page-container flex items-center justify-center">
+        <div className="max-w-md mx-auto card text-center">
+          <div className="w-20 h-20 bg-green-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
-          <h2 className="text-3xl font-bold text-purple-800 mb-6">
-            🎯 Förhör klart! 🎯
+          <h2 className="heading-lg mb-4">
+            Förhör klart!
           </h2>
-          <p className="text-xl text-purple-700 mb-8 font-semibold">
-            Du fick <span className="font-bold text-green-600 text-2xl bg-green-100 px-3 py-1 rounded-full">{score}</span> av <span className="font-bold text-purple-600">{questions.length}</span> rätt!
+          <p className="body-lg mb-6">
+            Du fick <span className="font-bold text-green-600">{score}</span> av {questions.length} rätt!
           </p>
 
-          <div className="mb-8 p-6 bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl border-2 border-purple-200">
-            <div className="text-6xl mb-4">
-              {score >= 8 ? '🌟⭐🌟' : score >= 6 ? '🎖️👍🎖️' : score >= 4 ? '😊🎈😊' : '📚💪📚'}
-            </div>
-            <p className="text-purple-800 font-bold text-xl">
-              {score >= 8 ? 'FANTASTISKT JOBBAT! Du är en riktig stjärna! ⭐' :
-               score >= 6 ? 'BRA JOBBAT! Du är på rätt väg! 🚀' :
-               score >= 4 ? 'HYGGLIGT! Fortsätt träna så blir du ännu bättre! 💪' :
-               'Träna lite till så blir du en expert! 🎯'}
+          <div className="card-compact mb-8">
+            <p className="body-md">
+              {score >= 8 ? 'Fantastiskt jobbat! Du är en riktig stjärna!' :
+               score >= 6 ? 'Bra jobbat! Du är på rätt väg!' :
+               score >= 4 ? 'Hyggligt! Fortsätt träna så blir du ännu bättre!' :
+               'Träna lite till så blir du en expert!'}
             </p>
           </div>
 
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4">
             <button
               onClick={restartQuiz}
-              className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-2xl hover:from-green-600 hover:to-emerald-700 transition-all transform hover:scale-105 shadow-lg font-bold text-lg"
+              className="btn btn-primary btn-large"
             >
-              🔄 10 nya frågor 🚀
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Kör igen
             </button>
             <button
               onClick={() => router.push('/')}
-              className="border-3 border-purple-400 text-purple-700 px-8 py-4 rounded-2xl hover:bg-purple-50 transition-all transform hover:scale-105 shadow-md font-bold text-lg"
+              className="btn btn-secondary btn-large"
             >
-              🏠 Tillbaka till startsidan
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              Tillbaka hem
             </button>
           </div>
         </div>
@@ -166,46 +171,47 @@ export default function MultipleChoicePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-200 via-pink-100 to-blue-200">
+    <div className="page-container">
       <NavigationHeader />
-      <div className="container mx-auto px-4 py-8">
+
+      <div className="content-container">
         <div className="max-w-2xl mx-auto">
-          <div className="mb-6">
+          <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
-              <h1 className="text-2xl font-bold text-purple-800">🧠 Flervalsfrågor 🎯</h1>
-              <span className="text-purple-700 font-bold text-lg">
-                {currentQuestion + 1} / {questions.length} 🚀
+              <h1 className="heading-md">Flervalsfrågor</h1>
+              <span className="body-md">
+                {currentQuestion + 1} / {questions.length}
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
+            <div className="progress-bar">
               <div
-                className="bg-gradient-to-r from-purple-500 to-pink-500 h-4 rounded-full transition-all duration-500 shadow-lg"
+                className="progress-fill"
                 style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
               ></div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-2xl p-8 border-4 border-purple-200">
+          <div className="card">
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-purple-900 mb-6 leading-relaxed">
-                🤔 {question.question}
+              <h2 className="heading-sm mb-6">
+                {question.question}
               </h2>
 
               <div className="space-y-3">
                 {question.options.map((option, index) => {
-                  let buttonClass = "w-full p-5 text-left border-3 rounded-2xl transition-all duration-300 font-semibold text-lg ";
+                  let buttonClass = "w-full p-4 text-left border-2 rounded-xl transition-all font-medium ";
 
                   if (!showFeedback) {
                     buttonClass += selectedAnswer === index
-                      ? "border-purple-500 bg-purple-100 text-purple-900 shadow-lg transform scale-105"
-                      : "border-purple-200 hover:border-purple-400 hover:bg-purple-50 text-gray-800 hover:transform hover:scale-102 shadow-md";
+                      ? "border-blue-500 bg-blue-50 text-blue-900"
+                      : "border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-900";
                   } else {
                     if (index === question.correctAnswer) {
-                      buttonClass += "border-green-500 bg-green-200 text-green-900 shadow-lg transform scale-105";
+                      buttonClass += "border-green-500 bg-green-50 text-green-900";
                     } else if (index === selectedAnswer && index !== question.correctAnswer) {
-                      buttonClass += "border-red-500 bg-red-200 text-red-900 shadow-lg";
+                      buttonClass += "border-red-500 bg-red-50 text-red-900";
                     } else {
-                      buttonClass += "border-gray-300 bg-gray-100 text-gray-600";
+                      buttonClass += "border-gray-200 bg-gray-50 text-gray-600";
                     }
                   }
 
@@ -213,19 +219,23 @@ export default function MultipleChoicePage() {
                     <button
                       key={index}
                       onClick={() => handleAnswerSelect(index)}
-                      className={`${buttonClass} min-h-[70px] touch-manipulation active:scale-95`}
+                      className={`${buttonClass} min-h-[60px]`}
                       disabled={showFeedback}
                     >
                       <div className="flex items-center space-x-3">
-                        <span className="flex-shrink-0 w-10 h-10 rounded-full border-3 border-current flex items-center justify-center text-lg font-bold shadow-md">
+                        <span className="flex-shrink-0 w-8 h-8 rounded-full border-2 border-current flex items-center justify-center font-semibold">
                           {String.fromCharCode(65 + index)}
                         </span>
-                        <span className="text-left flex-1 text-lg font-medium">{option}</span>
+                        <span className="text-left flex-1 body-md">{option}</span>
                         {showFeedback && index === question.correctAnswer && (
-                          <span className="ml-auto text-green-600 text-xl">✓</span>
+                          <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
                         )}
                         {showFeedback && index === selectedAnswer && index !== question.correctAnswer && (
-                          <span className="ml-auto text-red-600 text-xl">✗</span>
+                          <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
                         )}
                       </div>
                     </button>
@@ -234,18 +244,35 @@ export default function MultipleChoicePage() {
               </div>
 
               {showFeedback && (
-                <div className={`mt-6 p-6 rounded-2xl border-3 ${selectedAnswer === question.correctAnswer ? 'bg-green-100 border-green-400' : 'bg-orange-100 border-orange-400'}`}>
-                  <div className="flex items-start space-x-3">
-                    <div className="text-3xl">
-                      {selectedAnswer === question.correctAnswer ? "🎉" : "🤔"}
+                <div className={`mt-6 card-compact border-2 ${
+                  selectedAnswer === question.correctAnswer
+                    ? 'feedback-success'
+                    : 'feedback-warning'
+                }`}>
+                  <div className="flex items-start space-x-4">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                      selectedAnswer === question.correctAnswer
+                        ? 'bg-green-100'
+                        : 'bg-amber-100'
+                    }`}>
+                      <svg className={`w-6 h-6 ${
+                        selectedAnswer === question.correctAnswer
+                          ? 'text-green-600'
+                          : 'text-amber-600'
+                      }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {selectedAnswer === question.correctAnswer
+                          ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        }
+                      </svg>
                     </div>
                     <div>
-                      <p className={`font-bold text-xl mb-2 ${selectedAnswer === question.correctAnswer ? 'text-green-800' : 'text-orange-800'}`}>
-                        {selectedAnswer === question.correctAnswer ? "🌟 Rätt svar! Bra jobbat!" : "💪 Inte rätt den här gången!"}
+                      <p className="heading-sm mb-2">
+                        {selectedAnswer === question.correctAnswer ? "Rätt svar!" : "Inte rätt den här gången"}
                       </p>
                       {question.explanation && (
-                        <p className={`text-lg ${selectedAnswer === question.correctAnswer ? 'text-green-700' : 'text-orange-700'}`}>
-                          💡 {question.explanation}
+                        <p className="body-md">
+                          {question.explanation}
                         </p>
                       )}
                     </div>
@@ -254,9 +281,9 @@ export default function MultipleChoicePage() {
               )}
 
               {showFeedback && timeLeft !== null && (
-                <div className="mt-6 text-center p-4 bg-purple-100 rounded-2xl border-2 border-purple-300">
-                  <p className="text-purple-800 font-bold text-lg">
-                    🚀 Nästa fråga om <span className="text-purple-600 text-xl bg-white px-3 py-1 rounded-full">{timeLeft}</span> sekunder...
+                <div className="mt-6 text-center card-compact">
+                  <p className="body-md">
+                    Nästa fråga om <span className="font-semibold">{timeLeft}</span> sekunder...
                   </p>
                 </div>
               )}
@@ -264,9 +291,9 @@ export default function MultipleChoicePage() {
           </div>
 
           <div className="mt-8 text-center">
-            <div className="bg-white rounded-2xl shadow-lg p-4 border-3 border-purple-200 inline-block">
-              <p className="text-purple-800 font-bold text-lg">
-                🏆 Poäng: <span className="text-green-600 text-xl bg-green-100 px-3 py-1 rounded-full">{score}</span> / <span className="text-purple-600">{currentQuestion + (showFeedback ? 1 : 0)}</span>
+            <div className="card-compact inline-block">
+              <p className="body-md">
+                Poäng: <span className="font-bold">{score}</span> / {currentQuestion + (showFeedback ? 1 : 0)}
               </p>
             </div>
           </div>
