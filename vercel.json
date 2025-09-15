@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "src/app/api/analyze-image/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/analyze-speech/route.ts": {
+      "maxDuration": 30
+    }
+  }
+}

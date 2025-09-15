@@ -38,19 +38,40 @@ export default function UploadPage() {
     }
   };
 
+  const compressImage = (file: File, maxWidth: number = 1024, quality: number = 0.8): Promise<string> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+      const img = new Image();
+
+      img.onload = () => {
+        // Calculate new dimensions
+        const ratio = Math.min(maxWidth / img.width, maxWidth / img.height);
+        const newWidth = img.width * ratio;
+        const newHeight = img.height * ratio;
+
+        // Set canvas size
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+
+        // Draw and compress
+        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedBase64);
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const analyzeImage = async () => {
     if (!file) return;
 
     setAnalyzing(true);
 
     try {
-      // Convert image to base64
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      // Compress image to reduce size
+      const compressedBase64 = await compressImage(file, 1024, 0.7);
 
       // Call AI analysis API
       const response = await fetch('/api/analyze-image', {
@@ -59,12 +80,13 @@ export default function UploadPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          imageBase64: base64,
+          imageBase64: compressedBase64,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('AI analysis failed');
+        const errorText = await response.text();
+        throw new Error(`API error: ${response.status} - ${errorText}`);
       }
 
       const analysis = await response.json();
@@ -76,7 +98,7 @@ export default function UploadPage() {
       router.push('/quiz-setup');
     } catch (error) {
       console.error('Analysis error:', error);
-      alert('Kunde inte analysera bilden. Kontrollera att du har lagt till din OpenAI API-nyckel.');
+      alert(`Kunde inte analysera bilden: ${error.message}`);
       setAnalyzing(false);
     }
   };
