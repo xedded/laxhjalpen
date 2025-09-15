@@ -20,53 +20,47 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
   difficulty: string;
 }> {
   try {
-    // Try GPT-4 Vision first
+    // Try GPT-4 Vision first with optimized settings
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o-mini", // Using faster mini model for better timeout handling
       messages: [
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `Analysera denna läxbild och skapa 10 frågor baserat på innehållet.
+              text: `Analysera denna läxbild snabbt och skapa 5 frågor baserat på innehållet.
 
-              Returnera resultatet som JSON med denna struktur:
+              Returnera JSON:
               {
-                "subject": "ämne på svenska (t.ex. Matematik, Svenska, Historia)",
-                "difficulty": "svårighetsgrad (Lätt, Medel, Svår)",
+                "subject": "ämne",
+                "difficulty": "Medel",
                 "questions": [
                   {
                     "id": 1,
-                    "question": "frågan på svenska",
-                    "options": ["alternativ 1", "alternativ 2", "alternativ 3", "alternativ 4"],
+                    "question": "fråga",
+                    "options": ["alt1", "alt2", "alt3", "alt4"],
                     "correctAnswer": 0,
-                    "expectedAnswer": "förväntat svar för muntligt förhör",
-                    "explanation": "förklaring av svaret"
+                    "expectedAnswer": "kort svar",
+                    "explanation": "kort förklaring"
                   }
                 ]
               }
 
-              Instruktioner:
-              - Skapa exakt 10 frågor
-              - Alla frågor ska vara på svenska
-              - För flervalsfrågor: lägg till 4 alternativ, ange rätt svar som index (0-3)
-              - För muntliga svar: expectedAnswer ska vara det förväntade svaret
-              - Anpassa svårighetsgrad efter innehållet
-              - Fokusera på det viktigaste innehållet i bilden`
+              Skapa 5 korta svenska frågor baserat på bildens text/innehåll.`
             },
             {
               type: "image_url",
               image_url: {
                 url: `data:image/jpeg;base64,${imageBase64}`,
-                detail: "high"
+                detail: "low" // Using low detail for faster processing
               }
             }
           ]
         }
       ],
-      max_tokens: 2000,
-      temperature: 0.3,
+      max_tokens: 1000, // Reduced for faster response
+      temperature: 0.2,
     });
 
     const content = response.choices[0]?.message?.content;
@@ -97,25 +91,25 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
           },
           {
             role: "user",
-            content: `Skapa 10 pedagogiska frågor för svenska grundskoleelever.
+            content: `Skapa 5 korta pedagogiska frågor för svenska grundskoleelever.
 
-            Returnera JSON med denna struktur:
+            Returnera JSON:
             {
               "subject": "Allmänkunskap",
               "difficulty": "Medel",
               "questions": [
                 {
                   "id": 1,
-                  "question": "fråga på svenska",
+                  "question": "kort fråga",
                   "options": ["alt1", "alt2", "alt3", "alt4"],
                   "correctAnswer": 0,
-                  "expectedAnswer": "kort svar",
+                  "expectedAnswer": "svar",
                   "explanation": "förklaring"
                 }
               ]
             }
 
-            Fokusera på grundläggande kunskaper inom matematik, svenska och allmänkunskap.`
+            Fokusera på matematik, svenska, allmänkunskap.`
           }
         ],
         max_tokens: 1500,
@@ -147,18 +141,10 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
           options: ["Venus", "Merkurius", "Mars", "Jorden"],
           correctAnswer: 1,
           expectedAnswer: "Merkurius",
-          explanation: "Merkurius är den planet som ligger närmast solen"
+          explanation: "Merkurius ligger närmast solen"
         },
         {
           id: 3,
-          question: "Vad kallas en grupp fåglar?",
-          options: ["Hjord", "Flock", "Skara", "Hop"],
-          correctAnswer: 1,
-          expectedAnswer: "flock",
-          explanation: "En grupp fåglar kallas flock"
-        },
-        {
-          id: 4,
           question: "Hur många sidor har en triangel?",
           options: ["2", "3", "4", "5"],
           correctAnswer: 1,
@@ -166,7 +152,7 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
           explanation: "En triangel har alltid tre sidor"
         },
         {
-          id: 5,
+          id: 4,
           question: "Vad är huvudstaden i Norge?",
           options: ["Bergen", "Trondheim", "Oslo", "Stavanger"],
           correctAnswer: 2,
@@ -174,39 +160,7 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
           explanation: "Oslo är Norges huvudstad"
         },
         {
-          id: 6,
-          question: "Vad är 15 ÷ 3?",
-          options: ["3", "4", "5", "6"],
-          correctAnswer: 2,
-          expectedAnswer: "fem",
-          explanation: "15 ÷ 3 = 5"
-        },
-        {
-          id: 7,
-          question: "Vilket organ pumpar blod i kroppen?",
-          options: ["Lungor", "Hjärta", "Lever", "Njurar"],
-          correctAnswer: 1,
-          expectedAnswer: "hjärtat",
-          explanation: "Hjärtat pumpar blod genom kroppen"
-        },
-        {
-          id: 8,
-          question: "Vad kallas den längsta floden i Sverige?",
-          options: ["Dalälven", "Göta älv", "Klarälven", "Torneälv"],
-          correctAnswer: 0,
-          expectedAnswer: "Dalälven",
-          explanation: "Dalälven är Sveriges längsta flod"
-        },
-        {
-          id: 9,
-          question: "Hur många ben har en spindel?",
-          options: ["6", "7", "8", "10"],
-          correctAnswer: 2,
-          expectedAnswer: "åtta",
-          explanation: "Spindlar har åtta ben"
-        },
-        {
-          id: 10,
+          id: 5,
           question: "Vad blir 4 × 6?",
           options: ["20", "22", "24", "26"],
           correctAnswer: 2,
