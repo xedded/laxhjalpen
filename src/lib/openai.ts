@@ -22,101 +22,140 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
   try {
     console.log('Attempting GPT-4o Vision analysis...');
 
-    // Try GPT-4 Vision first with optimized settings
+    // Validate base64 input
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
+      throw new Error('Invalid base64 image data provided');
+    }
+
+    console.log('Making GPT-4o Vision API call...');
+
+    // Try GPT-4o Vision with comprehensive error handling
     const response = await openai.chat.completions.create({
-      model: "gpt-4o", // Back to full GPT-4o for reliable Vision support
+      model: "gpt-4o",
       messages: [
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `Analysera denna läxbild snabbt och skapa 5 frågor baserat på innehållet.
+              text: `Analysera denna läxbild och identifiera ämnet och skapa relevanta frågor.
 
-              Returnera JSON:
+              VIKTIGT: Returnera enbart giltig JSON utan extra text:
               {
-                "subject": "ämne",
+                "subject": "identifierat ämne (t.ex. Matematik, Fysik, Historia, Svenska)",
                 "difficulty": "Medel",
                 "questions": [
                   {
                     "id": 1,
-                    "question": "fråga",
-                    "options": ["alt1", "alt2", "alt3", "alt4"],
+                    "question": "specifik fråga baserat på bildinnehållet",
+                    "options": ["svar1", "svar2", "svar3", "svar4"],
                     "correctAnswer": 0,
                     "expectedAnswer": "kort svar",
-                    "explanation": "kort förklaring"
+                    "explanation": "förklaring"
                   }
                 ]
               }
 
-              Skapa 5 korta svenska frågor baserat på bildens text/innehåll.`
+              Skapa exakt 5 frågor baserat på vad du ser i bilden. Om du ser text, math-problem, diagram etc, basera frågorna på det specifika innehållet.`
             },
             {
               type: "image_url",
               image_url: {
                 url: `data:image/jpeg;base64,${imageBase64}`,
-                detail: "high" // Using high detail for better text recognition
+                detail: "high"
               }
             }
           ]
         }
       ],
-      max_tokens: 1000, // Reduced for faster response
-      temperature: 0.2,
+      max_tokens: 1500,
+      temperature: 0.1,
     });
+
+    console.log('GPT-4o Vision API call completed successfully');
 
     const content = response.choices[0]?.message?.content;
     if (!content) {
       throw new Error('Inget svar från OpenAI');
     }
 
-    console.log('GPT-4o-mini Vision response received, length:', content.length);
+    console.log('GPT-4o Vision response received, length:', content.length);
+    console.log('Raw response content:', content.substring(0, 200) + '...');
 
-    // Parse JSON response
-    const result = JSON.parse(content);
+    // Clean and parse JSON response
+    let cleanContent = content.trim();
+    // Remove potential markdown code blocks
+    if (cleanContent.startsWith('```json')) {
+      cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    }
+    if (cleanContent.startsWith('```')) {
+      cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+
+    let result;
+    try {
+      result = JSON.parse(cleanContent);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      console.error('Failed to parse content:', cleanContent);
+      throw new Error(`JSON parsing failed: ${parseError instanceof Error ? parseError.message : 'Unknown parse error'}`);
+    }
 
     // Validate structure
     if (!result.questions || !Array.isArray(result.questions) || result.questions.length === 0) {
+      console.error('Invalid result structure:', result);
       throw new Error('Felaktig struktur i AI-svaret');
     }
 
-    console.log('GPT-4o Vision analysis successful, questions generated:', result.questions.length);
+    console.log('GPT-4o Vision analysis successful!');
+    console.log('Subject identified:', result.subject);
+    console.log('Questions generated:', result.questions.length);
+    console.log('First question:', result.questions[0]?.question);
+
     return result;
   } catch (error) {
-    console.error('Error analyzing image with GPT-4o Vision, falling back to GPT-3.5:', error);
+    console.error('Error analyzing image with GPT-4o Vision:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+      type: typeof error,
+      errorObject: error
+    });
+    console.log('Falling back to GPT-3.5...');
 
     // Fallback to GPT-3.5 with generic text analysis
     try {
       console.log('Attempting GPT-3.5 fallback...');
 
+      // Since Vision failed, we'll create subject-agnostic questions that could work for most homework
       const fallbackResponse = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [
           {
             role: "system",
-            content: "Du är en pedagogisk assistent som skapar frågor för svenska elever baserat på läxmaterial."
+            content: "Du är en pedagogisk assistent. Skapa frågor som kan hjälpa elever träna studieteknik och förståelse."
           },
           {
             role: "user",
-            content: `Skapa 5 korta pedagogiska frågor för svenska grundskoleelever.
+            content: `Bilden kunde inte analyseras med Vision AI. Skapa 5 studieteknik-frågor som hjälper eleven träna:
 
             Returnera JSON:
             {
-              "subject": "Allmänkunskap",
+              "subject": "Studieteknik",
               "difficulty": "Medel",
               "questions": [
                 {
                   "id": 1,
-                  "question": "kort fråga",
-                  "options": ["alt1", "alt2", "alt3", "alt4"],
-                  "correctAnswer": 0,
-                  "expectedAnswer": "svar",
-                  "explanation": "förklaring"
+                  "question": "Vad är ett bra sätt att sammanfatta det du lärt dig?",
+                  "options": ["Bara läsa igen", "Skriva egna anteckningar", "Titta på telefonen", "Hoppa över"],
+                  "correctAnswer": 1,
+                  "expectedAnswer": "skriva egna anteckningar",
+                  "explanation": "Att skriva egna sammanfattningar hjälper hjärnan att bearbeta informationen"
                 }
               ]
             }
 
-            Fokusera på matematik, svenska, allmänkunskap.`
+            Fokusera på hur man lär sig effektivt, lästekniker, minnesmetoder och studievanor.`
           }
         ],
         max_tokens: 1500,
