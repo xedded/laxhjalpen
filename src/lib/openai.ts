@@ -12,12 +12,17 @@ export interface Question {
   correctAnswer?: number;
   expectedAnswer?: string;
   explanation?: string;
+  questionLanguage?: string;
+  answerLanguage?: string;
 }
 
 export async function analyzeHomeworkImage(imageBase64: string): Promise<{
   questions: Question[];
   subject: string;
   difficulty: string;
+  language?: string;
+  isVocabulary?: boolean;
+  vocabularyLanguages?: string[];
 }> {
   try {
     console.log('Attempting GPT-4o Vision analysis...');
@@ -42,8 +47,11 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
 
               VIKTIGT: Returnera enbart giltig JSON utan extra text:
               {
-                "subject": "identifierat ämne (t.ex. Matematik, Fysik, Historia, Svenska)",
+                "subject": "identifierat ämne (t.ex. Glosor-Engelska, Glosor-Spanska, Matematik, Fysik, Historia, Svenska)",
                 "difficulty": "Medel",
+                "language": "språk för glosor eller 'svenska' för andra ämnen",
+                "isVocabulary": true/false,
+                "vocabularyLanguages": ["svenska", "engelska"] // endast om isVocabulary är true,
                 "questions": [
                   {
                     "id": 1,
@@ -51,12 +59,20 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
                     "options": ["svar1", "svar2", "svar3", "svar4"],
                     "correctAnswer": 0,
                     "expectedAnswer": "kort svar",
-                    "explanation": "förklaring"
+                    "explanation": "förklaring",
+                    "questionLanguage": "svenska",
+                    "answerLanguage": "engelska" // språket svaret förväntas vara på
                   }
                 ]
               }
 
-              Skapa exakt 10 frågor baserat på vad du ser i bilden. Om du ser text, math-problem, diagram etc, basera frågorna på det specifika innehållet.`
+              SPECIELLA INSTRUKTIONER FÖR GLOSOR:
+              - Om du ser ordpar/glosor (svenska-engelska, engelska-spanska etc), sätt isVocabulary: true
+              - För glosor, identifiera båda språken i vocabularyLanguages
+              - För glosfrågor, använd questionLanguage för frågans språk och answerLanguage för svarets språk
+              - Exempel glosfråga: "Vad heter 'hund' på engelska?" (questionLanguage: "svenska", answerLanguage: "engelska")
+
+              Skapa exakt 10 frågor baserat på vad du ser i bilden. Om du ser glosor, skapa översättningsfrågor åt båda hållen.`
             },
             {
               type: "image_url",
@@ -268,7 +284,9 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
 export async function analyzeOralAnswer(
   question: string,
   transcribedAnswer: string,
-  expectedAnswer: string
+  expectedAnswer: string,
+  questionLanguage: string = 'svenska',
+  answerLanguage: string = 'svenska'
 ): Promise<{
   isCorrect: boolean;
   feedback: string;
@@ -282,6 +300,8 @@ export async function analyzeOralAnswer(
         {
           role: "system",
           content: `Du är en pedagogisk AI-assistent som bedömer elevers muntliga svar.
+          Frågan är på ${questionLanguage} och svaret förväntas vara på ${answerLanguage}.
+          För glosfrågor, acceptera synonymer och nära översättningar.
           Ge konstruktiv feedback på svenska och bedöm svaret på en skala 0-100.
           Var uppmuntrande men ärlig i din bedömning.`
         },

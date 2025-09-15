@@ -51,15 +51,15 @@ export default function QuizSetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-purple-200 via-pink-100 to-blue-200">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              Välj förhörstyp
+            <h1 className="text-4xl font-bold text-purple-800 mb-4">
+              🎯 Välj förhörstyp 🎯
             </h1>
-            <p className="text-gray-600 mb-4">
-              Baserat på din uppladdade läxa har vi skapat två olika förhör för dig
+            <p className="text-purple-700 mb-6 text-lg font-semibold">
+              Baserat på din uppladdade läxa har vi skapat två coola förhör för dig! 🚀
             </p>
             <div className="bg-white rounded-lg p-4 mb-6 shadow-sm">
               <div className="flex flex-wrap justify-center gap-4 text-sm">
@@ -72,6 +72,11 @@ export default function QuizSetupPage() {
                 <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full">
                   ❓ {quizData.questions.length} frågor
                 </span>
+                {quizData.isVocabulary && quizData.vocabularyLanguages && (
+                  <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full">
+                    🗣️ {quizData.vocabularyLanguages.join(' ↔ ')}
+                  </span>
+                )}
               </div>
             </div>
           </div>
