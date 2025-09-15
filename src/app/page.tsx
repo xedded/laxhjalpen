@@ -13,57 +13,13 @@ export default function Home() {
           </p>
         </header>
 
-        <main className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-              <div className="text-3xl mb-4">🧮</div>
-              <h2 className="text-xl font-semibold mb-3 text-gray-800">Matematik</h2>
-              <p className="text-gray-600 mb-4">
-                Få hjälp med algebra, geometri, ekvationer och mer
-              </p>
-              <button
-                onClick={() => window.location.href = '/upload'}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Börja räkna
-              </button>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-              <div className="text-3xl mb-4">🔬</div>
-              <h2 className="text-xl font-semibold mb-3 text-gray-800">Naturvetenskap</h2>
-              <p className="text-gray-600 mb-4">
-                Fysik, kemi, biologi - vi hjälper dig förstå
-              </p>
-              <button
-                onClick={() => window.location.href = '/upload'}
-                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-              >
-                Utforska
-              </button>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-              <div className="text-3xl mb-4">📝</div>
-              <h2 className="text-xl font-semibold mb-3 text-gray-800">Svenska</h2>
-              <p className="text-gray-600 mb-4">
-                Grammatik, uppsatser och textanalys
-              </p>
-              <button
-                onClick={() => window.location.href = '/upload'}
-                className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
-              >
-                Skriv bättre
-              </button>
-            </div>
-          </div>
-
+        <main className="max-w-4xl mx-auto">
           <div className="bg-white rounded-xl shadow-lg p-8 text-center">
             <h2 className="text-2xl font-semibold mb-4 text-gray-800">
               Kom igång direkt
             </h2>
             <p className="text-gray-600 mb-6">
-              Ställ en fråga eller ladda upp din läxa så hjälper vi dig steg för steg
+              Ladda upp din läxa så analyserar AI:n innehållet och skapar personliga förhör baserat på ämnet
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
