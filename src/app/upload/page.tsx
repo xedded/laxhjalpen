@@ -7,6 +7,7 @@ export default function UploadPage() {
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState('');
   const router = useRouter();
 
   const handleDrag = (e: React.DragEvent) => {
@@ -38,7 +39,7 @@ export default function UploadPage() {
     }
   };
 
-  const compressImage = (file: File, maxWidth: number = 1024, quality: number = 0.8): Promise<string> => {
+  const compressImage = (file: File, maxWidth: number = 800, quality: number = 0.6): Promise<string> => {
     return new Promise((resolve) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d')!;
@@ -68,12 +69,18 @@ export default function UploadPage() {
     if (!file) return;
 
     setAnalyzing(true);
+    setAnalysisProgress('Komprimerar bild...');
 
     try {
-      // Compress image to reduce size
-      const compressedBase64 = await compressImage(file, 1024, 0.7);
+      // Compress image aggressively for faster analysis (800px, 50% quality)
+      const compressedBase64 = await compressImage(file, 800, 0.5);
 
-      // Call AI analysis API
+      setAnalysisProgress('Skickar till AI för analys...');
+
+      // Call AI analysis API with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 second timeout
+
       const response = await fetch('/api/analyze-image', {
         method: 'POST',
         headers: {
@@ -82,14 +89,20 @@ export default function UploadPage() {
         body: JSON.stringify({
           imageBase64: compressedBase64,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`API error: ${response.status} - ${errorText}`);
       }
 
+      setAnalysisProgress('AI analyserar innehållet...');
       const analysis = await response.json();
+
+      setAnalysisProgress('Skapar förhör...');
 
       // Store analysis in sessionStorage for quiz pages
       sessionStorage.setItem('quizData', JSON.stringify(analysis));
@@ -98,9 +111,19 @@ export default function UploadPage() {
       router.push('/quiz-setup');
     } catch (error) {
       console.error('Analysis error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Okänt fel';
+      let errorMessage = 'Okänt fel';
+
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorMessage = 'Analysen tog för lång tid - prova med en enklare bild eller försök igen';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
       alert(`Kunde inte analysera bilden: ${errorMessage}`);
       setAnalyzing(false);
+      setAnalysisProgress('');
     }
   };
 
@@ -204,12 +227,15 @@ export default function UploadPage() {
                   }`}
                 >
                   {analyzing ? (
-                    <span className="flex items-center gap-2">
-                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                      Analyserar...
+                    <span className="flex items-center gap-3">
+                      <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                      <div className="text-left">
+                        <div className="font-bold">Analyserar...</div>
+                        <div className="text-sm opacity-90">{analysisProgress}</div>
+                      </div>
                     </span>
                   ) : (
-                    'Analysera och skapa förhör'
+                    '🚀 Analysera och skapa förhör'
                   )}
                 </button>
 

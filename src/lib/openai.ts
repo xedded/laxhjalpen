@@ -94,13 +94,13 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
               type: "image_url",
               image_url: {
                 url: `data:image/jpeg;base64,${imageBase64}`,
-                detail: "high"
+                detail: "low" // Use low detail for faster processing
               }
             }
           ]
         }
       ],
-      max_tokens: 1500,
+      max_tokens: 1200, // Reduced for faster response
       temperature: 0.1,
     });
 
