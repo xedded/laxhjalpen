@@ -1,13 +1,13 @@
 'use client';
 
+import NavigationHeader from '@/components/NavigationHeader';
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-200 via-pink-100 to-blue-200">
+      <NavigationHeader showBackButton={false} />
       <div className="container mx-auto px-4 py-8">
         <header className="text-center mb-12">
-          <h1 className="text-5xl md:text-7xl font-bold text-purple-800 mb-6">
-            🧠 Läxhjälpen 🎯
-          </h1>
           <p className="text-2xl text-purple-700 max-w-2xl mx-auto font-semibold">
             Din AI-assistent som gör läxor roligare! 🚀
           </p>

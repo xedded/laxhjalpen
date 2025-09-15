@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import NavigationHeader from '@/components/NavigationHeader';
 
 interface Question {
   id: number;
@@ -166,6 +167,7 @@ export default function MultipleChoicePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-200 via-pink-100 to-blue-200">
+      <NavigationHeader />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6">

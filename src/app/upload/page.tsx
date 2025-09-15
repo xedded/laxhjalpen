@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import NavigationHeader from '@/components/NavigationHeader';
 
 export default function UploadPage() {
   const [dragActive, setDragActive] = useState(false);
@@ -143,6 +144,7 @@ export default function UploadPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-200 via-pink-100 to-blue-200">
+      <NavigationHeader />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
@@ -249,14 +251,6 @@ export default function UploadPage() {
             </div>
           )}
 
-          <div className="mt-8 text-center">
-            <button
-              onClick={() => router.push('/')}
-              className="text-indigo-600 hover:text-indigo-800 transition-colors"
-            >
-              ← Tillbaka till startsidan
-            </button>
-          </div>
         </div>
       </div>
     </div>
