@@ -20,11 +20,11 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
   difficulty: string;
 }> {
   try {
-    console.log('Attempting GPT-4o-mini Vision analysis...');
+    console.log('Attempting GPT-4o Vision analysis...');
 
     // Try GPT-4 Vision first with optimized settings
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Using faster mini model for better timeout handling
+      model: "gpt-4o", // Back to full GPT-4o for reliable Vision support
       messages: [
         {
           role: "user",
@@ -55,7 +55,7 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
               type: "image_url",
               image_url: {
                 url: `data:image/jpeg;base64,${imageBase64}`,
-                detail: "low" // Using low detail for faster processing
+                detail: "high" // Using high detail for better text recognition
               }
             }
           ]
@@ -80,10 +80,10 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
       throw new Error('Felaktig struktur i AI-svaret');
     }
 
-    console.log('GPT-4o-mini Vision analysis successful, questions generated:', result.questions.length);
+    console.log('GPT-4o Vision analysis successful, questions generated:', result.questions.length);
     return result;
   } catch (error) {
-    console.error('Error analyzing image with GPT-4o-mini Vision, falling back to GPT-3.5:', error);
+    console.error('Error analyzing image with GPT-4o Vision, falling back to GPT-3.5:', error);
 
     // Fallback to GPT-3.5 with generic text analysis
     try {
