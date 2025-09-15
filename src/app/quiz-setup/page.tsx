@@ -1,9 +1,45 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+interface QuizData {
+  subject: string;
+  difficulty: string;
+  questions: any[];
+}
 
 export default function QuizSetupPage() {
   const router = useRouter();
+  const [quizData, setQuizData] = useState<QuizData | null>(null);
+
+  useEffect(() => {
+    // Get quiz data from sessionStorage
+    const storedData = sessionStorage.getItem('quizData');
+    if (storedData) {
+      try {
+        const data = JSON.parse(storedData);
+        setQuizData(data);
+      } catch (error) {
+        console.error('Error parsing quiz data:', error);
+        router.push('/upload');
+      }
+    } else {
+      // No quiz data, redirect to upload
+      router.push('/upload');
+    }
+  }, [router]);
+
+  if (!quizData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Förbereder ditt förhör...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -13,9 +49,22 @@ export default function QuizSetupPage() {
             <h1 className="text-3xl font-bold text-gray-800 mb-2">
               Välj förhörstyp
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 mb-4">
               Baserat på din uppladdade läxa har vi skapat två olika förhör för dig
             </p>
+            <div className="bg-white rounded-lg p-4 mb-6 shadow-sm">
+              <div className="flex flex-wrap justify-center gap-4 text-sm">
+                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+                  📚 {quizData.subject}
+                </span>
+                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                  📊 {quizData.difficulty}
+                </span>
+                <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full">
+                  ❓ {quizData.questions.length} frågor
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-6">
@@ -36,7 +85,7 @@ export default function QuizSetupPage() {
                   </ul>
                   <button
                     onClick={() => router.push('/quiz/oral')}
-                    className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors text-lg font-medium w-full sm:w-auto"
+                    className="bg-green-600 text-white px-8 py-4 rounded-xl hover:bg-green-700 transition-colors text-lg font-medium w-full min-h-[60px] active:scale-[0.98] touch-manipulation"
                   >
                     Starta muntligt förhör
                   </button>
@@ -61,7 +110,7 @@ export default function QuizSetupPage() {
                   </ul>
                   <button
                     onClick={() => router.push('/quiz/multiple-choice')}
-                    className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium w-full sm:w-auto"
+                    className="bg-blue-600 text-white px-8 py-4 rounded-xl hover:bg-blue-700 transition-colors text-lg font-medium w-full min-h-[60px] active:scale-[0.98] touch-manipulation"
                   >
                     Starta flervalsfrågor
                   </button>

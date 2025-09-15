@@ -11,81 +11,14 @@ interface Question {
   explanation?: string;
 }
 
-// Mock questions - in real app these would come from AI analysis
-const mockQuestions: Question[] = [
-  {
-    id: 1,
-    question: "Vad betyder ordet 'serendipity'?",
-    options: ["En lycklig tillfällighet", "Ett planerat möte", "En olycklig händelse", "En vetenskaplig upptäckt"],
-    correctAnswer: 0,
-    explanation: "Serendipity betyder en lycklig tillfällighet eller ett oväntat fynd."
-  },
-  {
-    id: 2,
-    question: "Vilken är huvudstaden i Australien?",
-    options: ["Sydney", "Melbourne", "Canberra", "Perth"],
-    correctAnswer: 2,
-    explanation: "Canberra är Australiens huvudstad, även om Sydney är den största staden."
-  },
-  {
-    id: 3,
-    question: "Vad är 15 × 8?",
-    options: ["110", "120", "130", "125"],
-    correctAnswer: 1,
-    explanation: "15 × 8 = 120"
-  },
-  {
-    id: 4,
-    question: "Vad kallas processen när vatten övergår från flytande till gasform?",
-    options: ["Sublimering", "Kondensering", "Förångning", "Smältning"],
-    correctAnswer: 2,
-    explanation: "Förångning är när vatten övergår från flytande till gasform."
-  },
-  {
-    id: 5,
-    question: "Vem skrev 'Pippi Långstrump'?",
-    options: ["Selma Lagerlöf", "Astrid Lindgren", "Tove Jansson", "Elsa Beskow"],
-    correctAnswer: 1,
-    explanation: "Astrid Lindgren skrev böckerna om Pippi Långstrump."
-  },
-  {
-    id: 6,
-    question: "Vilket år startade andra världskriget?",
-    options: ["1938", "1939", "1940", "1941"],
-    correctAnswer: 1,
-    explanation: "Andra världskriget startade 1939 när Tyskland invaderade Polen."
-  },
-  {
-    id: 7,
-    question: "Vad är den kemiska symbolen för guld?",
-    options: ["Go", "Gd", "Au", "Ag"],
-    correctAnswer: 2,
-    explanation: "Au kommer från det latinska namnet för guld, 'aurum'."
-  },
-  {
-    id: 8,
-    question: "Hur många kontinenter finns det?",
-    options: ["5", "6", "7", "8"],
-    correctAnswer: 2,
-    explanation: "Det finns sju kontinenter: Asien, Afrika, Nordamerika, Sydamerika, Antarktis, Europa och Australien/Oceanien."
-  },
-  {
-    id: 9,
-    question: "Vad kallas en grupp lejon?",
-    options: ["Hjord", "Flock", "Skara", "Pride"],
-    correctAnswer: 3,
-    explanation: "En grupp lejon kallas för en 'pride' eller 'flock' på svenska."
-  },
-  {
-    id: 10,
-    question: "Vad är 7² (sju i kvadrat)?",
-    options: ["14", "42", "49", "56"],
-    correctAnswer: 2,
-    explanation: "7² = 7 × 7 = 49"
-  }
-];
+interface QuizData {
+  subject: string;
+  difficulty: string;
+  questions: Question[];
+}
 
 export default function MultipleChoicePage() {
+  const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -95,7 +28,35 @@ export default function MultipleChoicePage() {
 
   const router = useRouter();
 
-  const question = mockQuestions[currentQuestion];
+  useEffect(() => {
+    // Get quiz data from sessionStorage
+    const storedData = sessionStorage.getItem('quizData');
+    if (storedData) {
+      try {
+        const data = JSON.parse(storedData);
+        setQuizData(data);
+      } catch (error) {
+        console.error('Error parsing quiz data:', error);
+        router.push('/upload');
+      }
+    } else {
+      router.push('/upload');
+    }
+  }, [router]);
+
+  if (!quizData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Laddar förhör...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const questions = quizData.questions;
+  const question = questions[currentQuestion];
 
   useEffect(() => {
     if (showFeedback && timeLeft === null) {
@@ -122,7 +83,7 @@ export default function MultipleChoicePage() {
   };
 
   const nextQuestion = () => {
-    if (currentQuestion >= mockQuestions.length - 1) {
+    if (currentQuestion >= questions.length - 1) {
       setShowResults(true);
     } else {
       setCurrentQuestion(currentQuestion + 1);
@@ -150,7 +111,7 @@ export default function MultipleChoicePage() {
             Förhör klart!
           </h2>
           <p className="text-lg text-gray-600 mb-6">
-            Du fick <span className="font-bold text-green-600">{score}</span> av {mockQuestions.length} rätt
+            Du fick <span className="font-bold text-green-600">{score}</span> av {questions.length} rätt
           </p>
 
           <div className="mb-6">
@@ -192,13 +153,13 @@ export default function MultipleChoicePage() {
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-2xl font-bold text-gray-800">Flervalsfrågor</h1>
               <span className="text-gray-600">
-                {currentQuestion + 1} / {mockQuestions.length}
+                {currentQuestion + 1} / {questions.length}
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className="bg-blue-600 h-2 rounded-full transition-all"
-                style={{ width: `${((currentQuestion + 1) / mockQuestions.length) * 100}%` }}
+                style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
               ></div>
             </div>
           </div>
@@ -231,19 +192,19 @@ export default function MultipleChoicePage() {
                     <button
                       key={index}
                       onClick={() => handleAnswerSelect(index)}
-                      className={buttonClass}
+                      className={`${buttonClass} min-h-[60px] touch-manipulation active:scale-[0.98]`}
                       disabled={showFeedback}
                     >
                       <div className="flex items-center space-x-3">
-                        <span className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-current flex items-center justify-center text-sm font-medium">
+                        <span className="flex-shrink-0 w-8 h-8 rounded-full border-2 border-current flex items-center justify-center text-sm font-bold">
                           {String.fromCharCode(65 + index)}
                         </span>
-                        <span>{option}</span>
+                        <span className="text-left flex-1 text-base">{option}</span>
                         {showFeedback && index === question.correctAnswer && (
-                          <span className="ml-auto text-green-600">✓</span>
+                          <span className="ml-auto text-green-600 text-xl">✓</span>
                         )}
                         {showFeedback && index === selectedAnswer && index !== question.correctAnswer && (
-                          <span className="ml-auto text-red-600">✗</span>
+                          <span className="ml-auto text-red-600 text-xl">✗</span>
                         )}
                       </div>
                     </button>

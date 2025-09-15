@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📚 Läxhjälpen - AI-driven Homework Quiz App
 
-## Getting Started
+En intelligent webapp som hjälper elever studera genom att analysera bilder av läxor och skapa personliga förhör.
 
-First, run the development server:
+## ✨ Funktioner
 
+- 📷 **Bilduppladdning** - Fotografera eller ladda upp bilder av glosor och faktatext
+- 🤖 **AI-bildanalys** - Automatisk analys av innehållet med OpenAI GPT-4 Vision
+- 🎤 **Muntligt förhör** - Svara muntligt och få AI-feedback via Whisper
+- ✅ **Flervalsfrågor** - Visuell feedback med automatisk progression
+- 📱 **Mobiloptimerad** - Designad för smartphone-användning
+- 🇸🇪 **Svenska** - Fullständigt svenskt gränssnitt och innehåll
+
+## 🚀 Snabbstart
+
+### 1. Installera dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Sätt upp OpenAI API
+1. Gå till [OpenAI Platform](https://platform.openai.com/api-keys)
+2. Skapa en ny API-nyckel
+3. Kopiera din nyckel och uppdatera `.env.local`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# .env.local
+OPENAI_API_KEY=sk-your-api-key-here
+OPENAI_ORG_ID=org-your-org-id-here  # (valfritt)
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Starta utvecklingsservern
+```bash
+npm run dev
+```
 
-## Learn More
+Appen är nu tillgänglig på [http://localhost:3000](http://localhost:3000)
 
-To learn more about Next.js, take a look at the following resources:
+## 🏗️ Deployment på Vercel
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Automatisk deployment
+1. Pusha koden till GitHub
+2. Gå till [vercel.com](https://vercel.com)
+3. Importera ditt GitHub-repo
+4. Lägg till environment variables:
+   - `OPENAI_API_KEY`
+   - `OPENAI_ORG_ID` (valfritt)
+5. Klicka Deploy!
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🛠️ Teknikstack
 
-## Deploy on Vercel
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Styling**: Tailwind CSS 4
+- **AI Integration**: OpenAI GPT-4 Vision, Whisper
+- **Deployment**: Vercel
+- **Build Tools**: Turbopack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📱 Mobilanvändning
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Appen är optimerad för mobil och stödjer:
+- Touch-vänliga knappar och interaktioner
+- Kameraintegration för bilduppladdning
+- Mikrofoninspelning för muntliga svar
+- Responsiv design för alla skärmstorlekar
+
+## 🎯 Användningsflöde
+
+1. **Ladda upp** - Fotografera eller ladda upp bild av läxor
+2. **AI-analys** - Vänta medan AI analyserar innehållet
+3. **Välj förhör** - Muntligt eller flervalsfrågor
+4. **Genomför** - Svara på 10 frågor med AI-feedback
+5. **Resultat** - Se poäng och välj att fortsätta
+
+## 🔐 Säkerhet
+
+- API-nycklar lagras säkert som environment variables
+- Ingen användardata sparas permanent
+- Session-baserad quiz-data
+
+---
+
+Byggd med ❤️ för svenska elever 🇸🇪

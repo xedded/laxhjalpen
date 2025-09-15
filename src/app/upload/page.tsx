@@ -43,12 +43,42 @@ export default function UploadPage() {
 
     setAnalyzing(true);
 
-    // Simulate AI analysis - in real app this would call your AI service
-    setTimeout(() => {
-      setAnalyzing(false);
+    try {
+      // Convert image to base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      // Call AI analysis API
+      const response = await fetch('/api/analyze-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageBase64: base64,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('AI analysis failed');
+      }
+
+      const analysis = await response.json();
+
+      // Store analysis in sessionStorage for quiz pages
+      sessionStorage.setItem('quizData', JSON.stringify(analysis));
+
       // Navigate to quiz selection page
       router.push('/quiz-setup');
-    }, 2000);
+    } catch (error) {
+      console.error('Analysis error:', error);
+      alert('Kunde inte analysera bilden. Kontrollera att du har lagt till din OpenAI API-nyckel.');
+      setAnalyzing(false);
+    }
   };
 
   const takePhoto = () => {
@@ -101,14 +131,14 @@ export default function UploadPage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={takePhoto}
-                  className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                  className="bg-indigo-600 text-white px-6 py-4 rounded-xl hover:bg-indigo-700 transition-colors flex items-center gap-3 text-lg font-medium min-h-[60px] justify-center"
                 >
-                  <span>📱</span>
+                  <span className="text-2xl">📱</span>
                   Ta ett foto
                 </button>
 
-                <label className="bg-white border-2 border-indigo-600 text-indigo-600 px-6 py-3 rounded-lg hover:bg-indigo-50 transition-colors cursor-pointer flex items-center gap-2">
-                  <span>📁</span>
+                <label className="bg-white border-2 border-indigo-600 text-indigo-600 px-6 py-4 rounded-xl hover:bg-indigo-50 transition-colors cursor-pointer flex items-center gap-3 text-lg font-medium min-h-[60px] justify-center">
+                  <span className="text-2xl">📁</span>
                   Välj fil
                   <input
                     type="file"

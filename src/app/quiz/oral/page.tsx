@@ -1,38 +1,63 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Question {
   id: number;
   question: string;
   expectedAnswer: string;
+  explanation?: string;
 }
 
-// Mock questions - in real app these would come from AI analysis
-const mockQuestions: Question[] = [
-  { id: 1, question: "Vad betyder ordet 'serendipity' på svenska?", expectedAnswer: "en lycklig tillfällighet eller ett oväntat fynd" },
-  { id: 2, question: "Vilken är huvudstaden i Australien?", expectedAnswer: "Canberra" },
-  { id: 3, question: "Vad är 15 × 8?", expectedAnswer: "120" },
-  { id: 4, question: "Vad kallas det när vatten övergår från flytande till gasform?", expectedAnswer: "förångning" },
-  { id: 5, question: "Vem skrev boken 'Pippi Långstrump'?", expectedAnswer: "Astrid Lindgren" },
-  { id: 6, question: "Vilket år startade andra världskriget?", expectedAnswer: "1939" },
-  { id: 7, question: "Vad är symbolen för grundämnet guld?", expectedAnswer: "Au" },
-  { id: 8, question: "Hur många kontinenter finns det?", expectedAnswer: "sju" },
-  { id: 9, question: "Vad kallas en grupp av lejon?", expectedAnswer: "flock eller pride" },
-  { id: 10, question: "Vad är 7² (sju upphöjt till 2)?", expectedAnswer: "49" }
-];
+interface QuizData {
+  subject: string;
+  difficulty: string;
+  questions: Question[];
+}
 
 export default function OralQuizPage() {
+  const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [transcription, setTranscription] = useState<string>('');
   const [score, setScore] = useState(0);
+  const [totalPoints, setTotalPoints] = useState(0);
   const [showResults, setShowResults] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    // Get quiz data from sessionStorage
+    const storedData = sessionStorage.getItem('quizData');
+    if (storedData) {
+      try {
+        const data = JSON.parse(storedData);
+        setQuizData(data);
+      } catch (error) {
+        console.error('Error parsing quiz data:', error);
+        router.push('/upload');
+      }
+    } else {
+      router.push('/upload');
+    }
+  }, [router]);
+
+  if (!quizData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Laddar förhör...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const questions = quizData.questions;
 
   const startRecording = async () => {
     try {
@@ -69,45 +94,64 @@ export default function OralQuizPage() {
   };
 
   const processAnswer = async (audioBlob: Blob) => {
-    // Simulate AI analysis of the audio
-    // In real app, this would:
-    // 1. Send audio to speech-to-text service
-    // 2. Compare transcribed text with expected answer using AI
-    // 3. Generate feedback
+    try {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.wav');
+      formData.append('question', questions[currentQuestion].question);
+      formData.append('expectedAnswer', questions[currentQuestion].expectedAnswer || '');
 
-    setTimeout(() => {
-      const isCorrect = Math.random() > 0.3; // Mock 70% correct rate
-      const feedbackText = isCorrect
-        ? "Bra jobbat! Det var rätt svar."
-        : `Inte helt rätt. Rätt svar är: ${mockQuestions[currentQuestion].expectedAnswer}`;
+      const response = await fetch('/api/analyze-speech', {
+        method: 'POST',
+        body: formData,
+      });
 
-      setFeedback(feedbackText);
+      const result = await response.json();
+
+      setTranscription(result.transcription || '');
+      setFeedback(result.feedback);
       setIsAnalyzing(false);
 
-      if (isCorrect) {
+      // Add points to total (0-100 per question)
+      const points = result.score || 0;
+      setTotalPoints(totalPoints + points);
+
+      // Count as correct if score >= 70
+      if (points >= 70) {
         setScore(score + 1);
       }
 
-      // Auto-advance after 3 seconds
+      // Auto-advance after 4 seconds
+      setTimeout(() => {
+        nextQuestion();
+      }, 4000);
+    } catch (error) {
+      console.error('Error processing answer:', error);
+      setFeedback('Teknisk fel - försök igen');
+      setIsAnalyzing(false);
+
+      // Auto-advance after 3 seconds on error
       setTimeout(() => {
         nextQuestion();
       }, 3000);
-    }, 2000);
+    }
   };
 
   const nextQuestion = () => {
-    if (currentQuestion >= mockQuestions.length - 1) {
+    if (currentQuestion >= questions.length - 1) {
       setShowResults(true);
     } else {
       setCurrentQuestion(currentQuestion + 1);
       setFeedback(null);
+      setTranscription('');
     }
   };
 
   const restartQuiz = () => {
     setCurrentQuestion(0);
     setScore(0);
+    setTotalPoints(0);
     setFeedback(null);
+    setTranscription('');
     setShowResults(false);
   };
 
@@ -119,8 +163,11 @@ export default function OralQuizPage() {
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
             Förhör klart!
           </h2>
-          <p className="text-lg text-gray-600 mb-6">
-            Du fick <span className="font-bold text-green-600">{score}</span> av {mockQuestions.length} rätt
+          <p className="text-lg text-gray-600 mb-4">
+            Du fick <span className="font-bold text-green-600">{score}</span> av {questions.length} rätt
+          </p>
+          <p className="text-sm text-gray-500 mb-6">
+            Totala poäng: <span className="font-bold">{Math.round(totalPoints / questions.length)}</span>/100
           </p>
 
           <div className="flex flex-col gap-4">
@@ -150,13 +197,13 @@ export default function OralQuizPage() {
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-2xl font-bold text-gray-800">Muntligt förhör</h1>
               <span className="text-gray-600">
-                {currentQuestion + 1} / {mockQuestions.length}
+                {currentQuestion + 1} / {questions.length}
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className="bg-green-600 h-2 rounded-full transition-all"
-                style={{ width: `${((currentQuestion + 1) / mockQuestions.length) * 100}%` }}
+                style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
               ></div>
             </div>
           </div>
@@ -164,7 +211,7 @@ export default function OralQuizPage() {
           <div className="bg-white rounded-xl shadow-lg p-8">
             <div className="text-center mb-8">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                {mockQuestions[currentQuestion].question}
+                {questions[currentQuestion].question}
               </h2>
 
               {!feedback && !isAnalyzing && (
@@ -180,10 +227,19 @@ export default function OralQuizPage() {
                 </div>
               )}
 
+              {transcription && (
+                <div className="mb-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                  <p className="text-sm text-blue-600 font-medium mb-1">Du sa:</p>
+                  <p className="text-blue-800">"{transcription}"</p>
+                </div>
+              )}
+
               {feedback && (
                 <div className={`p-4 rounded-lg ${
-                  feedback.includes('Bra jobbat')
+                  feedback.includes('Bra') || feedback.includes('Rätt') || feedback.includes('bra')
                     ? 'bg-green-100 text-green-800'
+                    : feedback.includes('fel') || feedback.includes('Fel') || feedback.includes('Inte')
+                    ? 'bg-red-100 text-red-800'
                     : 'bg-yellow-100 text-yellow-800'
                 }`}>
                   {feedback}
@@ -195,14 +251,14 @@ export default function OralQuizPage() {
               {!isRecording && !feedback && !isAnalyzing ? (
                 <button
                   onClick={startRecording}
-                  className="bg-red-500 hover:bg-red-600 text-white rounded-full w-20 h-20 flex items-center justify-center text-2xl transition-colors shadow-lg"
+                  className="bg-red-500 hover:bg-red-600 text-white rounded-full w-24 h-24 md:w-20 md:h-20 flex items-center justify-center text-3xl md:text-2xl transition-colors shadow-lg active:scale-95 touch-manipulation"
                 >
                   🎤
                 </button>
               ) : isRecording ? (
                 <button
                   onClick={stopRecording}
-                  className="bg-red-600 hover:bg-red-700 text-white rounded-full w-20 h-20 flex items-center justify-center text-2xl transition-colors shadow-lg animate-pulse"
+                  className="bg-red-600 hover:bg-red-700 text-white rounded-full w-24 h-24 md:w-20 md:h-20 flex items-center justify-center text-3xl md:text-2xl transition-colors shadow-lg animate-pulse active:scale-95 touch-manipulation"
                 >
                   ⏹️
                 </button>
