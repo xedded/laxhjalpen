@@ -14,6 +14,12 @@ export interface Question {
   explanation?: string;
   questionLanguage?: string;
   answerLanguage?: string;
+  vocabularyPair?: {
+    word1: string;
+    word2: string;
+    language1: string;
+    language2: string;
+  };
 }
 
 export async function analyzeHomeworkImage(imageBase64: string): Promise<{
@@ -23,6 +29,12 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
   language?: string;
   isVocabulary?: boolean;
   vocabularyLanguages?: string[];
+  vocabularyPairs?: Array<{
+    word1: string;
+    word2: string;
+    language1: string;
+    language2: string;
+  }>;
 }> {
   try {
     console.log('Attempting GPT-4o Vision analysis...');
@@ -51,28 +63,32 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
                 "difficulty": "Medel",
                 "language": "språk för glosor eller 'svenska' för andra ämnen",
                 "isVocabulary": true/false,
-                "vocabularyLanguages": ["svenska", "engelska"] // endast om isVocabulary är true,
+                "vocabularyLanguages": ["svenska", "engelska"], // endast om isVocabulary är true
+                "vocabularyPairs": [{"word1": "hund", "word2": "dog", "language1": "svenska", "language2": "engelska"}], // exakta ordpar från bilden
                 "questions": [
                   {
                     "id": 1,
-                    "question": "specifik fråga baserat på bildinnehållet",
-                    "options": ["svar1", "svar2", "svar3", "svar4"],
-                    "correctAnswer": 0,
-                    "expectedAnswer": "kort svar",
-                    "explanation": "förklaring",
+                    "question": "Vad heter 'hund' på engelska?",
+                    "options": ["cat", "dog", "bird", "fish"],
+                    "correctAnswer": 1,
+                    "expectedAnswer": "dog",
+                    "explanation": "Hund översätts till dog på engelska",
                     "questionLanguage": "svenska",
-                    "answerLanguage": "engelska" // språket svaret förväntas vara på
+                    "answerLanguage": "engelska",
+                    "vocabularyPair": {"word1": "hund", "word2": "dog", "language1": "svenska", "language2": "engelska"}
                   }
                 ]
               }
 
-              SPECIELLA INSTRUKTIONER FÖR GLOSOR:
-              - Om du ser ordpar/glosor (svenska-engelska, engelska-spanska etc), sätt isVocabulary: true
-              - För glosor, identifiera båda språken i vocabularyLanguages
-              - För glosfrågor, använd questionLanguage för frågans språk och answerLanguage för svarets språk
-              - Exempel glosfråga: "Vad heter 'hund' på engelska?" (questionLanguage: "svenska", answerLanguage: "engelska")
+              KRITISKA INSTRUKTIONER FÖR GLOSOR:
+              - Om du ser ordpar/glosor, extrahera EXAKT de ord som visas i bilden
+              - Lägg alla ordpar i vocabularyPairs arrayen med exakt stavning från bilden
+              - För varje glosfråga, använd exakt ordet från bilden i vocabularyPair
+              - Skapa ENDAST frågor baserat på orden som faktiskt syns i bilden
+              - Gissa ALDRIG översättningar - använd bara vad som står i bilden
+              - För multiple choice, använd andra ord från bilden som distractors
 
-              Skapa exakt 10 frågor baserat på vad du ser i bilden. Om du ser glosor, skapa översättningsfrågor åt båda hållen.`
+              Skapa exakt 10 frågor baserat på vad du ser i bilden. Om glosor, använd bara orden från bilden.`
             },
             {
               type: "image_url",
@@ -286,7 +302,13 @@ export async function analyzeOralAnswer(
   transcribedAnswer: string,
   expectedAnswer: string,
   questionLanguage: string = 'svenska',
-  answerLanguage: string = 'svenska'
+  answerLanguage: string = 'svenska',
+  vocabularyPair?: {
+    word1: string;
+    word2: string;
+    language1: string;
+    language2: string;
+  }
 ): Promise<{
   isCorrect: boolean;
   feedback: string;
@@ -301,7 +323,16 @@ export async function analyzeOralAnswer(
           role: "system",
           content: `Du är en pedagogisk AI-assistent som bedömer elevers muntliga svar.
           Frågan är på ${questionLanguage} och svaret förväntas vara på ${answerLanguage}.
-          För glosfrågor, acceptera synonymer och nära översättningar.
+
+          ${vocabularyPair ?
+            `VIKTIGT: Detta är en glosfråga baserad på exakt ordpar från elevens läxbild.
+            Korrekt svar är: "${expectedAnswer}" (från ordparet: ${vocabularyPair.word1} ↔ ${vocabularyPair.word2})
+            Acceptera ENDAST exakt detta ord eller mycket nära varianter (t.ex. plural/singular).
+            Acceptera INTE synonymer eller andra översättningar - eleven ska lära sig exakt det som står i glosorna.`
+            :
+            'För icke-glosfrågor, acceptera korrekta svar och nära varianter.'
+          }
+
           Ge konstruktiv feedback på svenska och bedöm svaret på en skala 0-100.
           Var uppmuntrande men ärlig i din bedömning.`
         },

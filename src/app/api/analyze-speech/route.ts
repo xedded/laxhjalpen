@@ -27,6 +27,16 @@ export async function POST(request: NextRequest) {
     const expectedAnswer = formData.get('expectedAnswer') as string;
     const questionLanguage = (formData.get('questionLanguage') as string) || 'svenska';
     const answerLanguage = (formData.get('answerLanguage') as string) || 'svenska';
+    const vocabularyPairJson = formData.get('vocabularyPair') as string;
+
+    let vocabularyPair = undefined;
+    if (vocabularyPairJson) {
+      try {
+        vocabularyPair = JSON.parse(vocabularyPairJson);
+      } catch (error) {
+        console.error('Error parsing vocabularyPair:', error);
+      }
+    }
 
     if (!audioFile || !question || !expectedAnswer) {
       return NextResponse.json(
@@ -56,7 +66,8 @@ export async function POST(request: NextRequest) {
       transcription,
       expectedAnswer,
       questionLanguage,
-      answerLanguage
+      answerLanguage,
+      vocabularyPair
     );
 
     return NextResponse.json({

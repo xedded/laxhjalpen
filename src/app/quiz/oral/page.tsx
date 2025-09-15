@@ -103,6 +103,11 @@ export default function OralQuizPage() {
       formData.append('questionLanguage', currentQ.questionLanguage || 'svenska');
       formData.append('answerLanguage', currentQ.answerLanguage || 'svenska');
 
+      // Send vocabulary pair for exact matching if it exists
+      if (currentQ.vocabularyPair) {
+        formData.append('vocabularyPair', JSON.stringify(currentQ.vocabularyPair));
+      }
+
       const response = await fetch('/api/analyze-speech', {
         method: 'POST',
         body: formData,
