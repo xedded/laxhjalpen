@@ -19,7 +19,10 @@ export default function Home() {
               <p className="text-gray-600 mb-4">
                 Få hjälp med algebra, geometri, ekvationer och mer
               </p>
-              <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+              <button
+                onClick={() => window.location.href = '/upload'}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              >
                 Börja räkna
               </button>
             </div>
@@ -30,7 +33,10 @@ export default function Home() {
               <p className="text-gray-600 mb-4">
                 Fysik, kemi, biologi - vi hjälper dig förstå
               </p>
-              <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+              <button
+                onClick={() => window.location.href = '/upload'}
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+              >
                 Utforska
               </button>
             </div>
@@ -41,7 +47,10 @@ export default function Home() {
               <p className="text-gray-600 mb-4">
                 Grammatik, uppsatser och textanalys
               </p>
-              <button className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
+              <button
+                onClick={() => window.location.href = '/upload'}
+                className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+              >
                 Skriv bättre
               </button>
             </div>
@@ -55,11 +64,14 @@ export default function Home() {
               Ställ en fråga eller ladda upp din läxa så hjälper vi dig steg för steg
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors text-lg font-medium">
-                Ställ en fråga
+              <button
+                onClick={() => window.location.href = '/upload'}
+                className="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors text-lg font-medium"
+              >
+                Ladda upp läxa
               </button>
               <button className="border-2 border-indigo-600 text-indigo-600 px-8 py-3 rounded-lg hover:bg-indigo-50 transition-colors text-lg font-medium">
-                Ladda upp läxa
+                Demo förhör
               </button>
             </div>
           </div>
