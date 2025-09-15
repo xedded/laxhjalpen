@@ -56,7 +56,7 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
                 ]
               }
 
-              Skapa exakt 5 frågor baserat på vad du ser i bilden. Om du ser text, math-problem, diagram etc, basera frågorna på det specifika innehållet.`
+              Skapa exakt 10 frågor baserat på vad du ser i bilden. Om du ser text, math-problem, diagram etc, basera frågorna på det specifika innehållet.`
             },
             {
               type: "image_url",
@@ -137,7 +137,7 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
           },
           {
             role: "user",
-            content: `Bilden kunde inte analyseras med Vision AI. Skapa 5 studieteknik-frågor som hjälper eleven träna:
+            content: `Bilden kunde inte analyseras med Vision AI. Skapa 10 studieteknik-frågor som hjälper eleven träna:
 
             Returnera JSON:
             {
@@ -213,6 +213,46 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
           correctAnswer: 2,
           expectedAnswer: "tjugofyra",
           explanation: "4 × 6 = 24"
+        },
+        {
+          id: 6,
+          question: "Vilket år upptäcktes Amerika?",
+          options: ["1490", "1491", "1492", "1493"],
+          correctAnswer: 2,
+          expectedAnswer: "fjortonhundranittiotvå",
+          explanation: "Kristofer Columbus kom till Amerika 1492"
+        },
+        {
+          id: 7,
+          question: "Vad kallas djur som äter både växter och kött?",
+          options: ["Köttätare", "Växtätare", "Allätare", "Fiskätare"],
+          correctAnswer: 2,
+          expectedAnswer: "allätare",
+          explanation: "Allätare äter både växter och kött"
+        },
+        {
+          id: 8,
+          question: "Hur många månader har 31 dagar?",
+          options: ["5", "6", "7", "8"],
+          correctAnswer: 2,
+          expectedAnswer: "sju",
+          explanation: "Jan, mars, maj, juli, aug, okt, dec har 31 dagar"
+        },
+        {
+          id: 9,
+          question: "Vad heter Sveriges huvudstad?",
+          options: ["Göteborg", "Stockholm", "Malmö", "Uppsala"],
+          correctAnswer: 1,
+          expectedAnswer: "Stockholm",
+          explanation: "Stockholm är Sveriges huvudstad"
+        },
+        {
+          id: 10,
+          question: "Vad blir 12 ÷ 3?",
+          options: ["3", "4", "5", "6"],
+          correctAnswer: 1,
+          expectedAnswer: "fyra",
+          explanation: "12 delat med 3 är 4"
         }
       ];
 

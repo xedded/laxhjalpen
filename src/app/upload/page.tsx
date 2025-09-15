@@ -119,15 +119,15 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-purple-200 via-pink-100 to-blue-200">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              Ladda upp din läxa
+            <h1 className="text-4xl font-bold text-purple-800 mb-4">
+              📚 Ladda upp din läxa 🚀
             </h1>
-            <p className="text-gray-600">
-              Fotografera eller ladda upp en bild av dina glosor eller faktatext
+            <p className="text-purple-700 text-lg font-semibold">
+              Fotografera eller ladda upp en bild så skapar AI:n coola frågor åt dig! 🎯
             </p>
           </div>
 

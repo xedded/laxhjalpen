@@ -104,40 +104,42 @@ export default function MultipleChoicePage() {
 
   if (showResults) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8 text-center">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Förhör klart!
+      <div className="min-h-screen bg-gradient-to-br from-purple-200 via-pink-100 to-blue-200 flex items-center justify-center">
+        <div className="max-w-md mx-auto bg-white rounded-3xl shadow-2xl p-10 text-center border-4 border-purple-300">
+          <div className="text-8xl mb-6 animate-bounce">
+            {score >= 8 ? '🎉' : score >= 6 ? '🎊' : score >= 4 ? '👏' : '💪'}
+          </div>
+          <h2 className="text-3xl font-bold text-purple-800 mb-6">
+            🎯 Förhör klart! 🎯
           </h2>
-          <p className="text-lg text-gray-600 mb-6">
-            Du fick <span className="font-bold text-green-600">{score}</span> av {questions.length} rätt
+          <p className="text-xl text-purple-700 mb-8 font-semibold">
+            Du fick <span className="font-bold text-green-600 text-2xl bg-green-100 px-3 py-1 rounded-full">{score}</span> av <span className="font-bold text-purple-600">{questions.length}</span> rätt!
           </p>
 
-          <div className="mb-6">
-            <div className="text-4xl mb-2">
-              {score >= 8 ? '🌟' : score >= 6 ? '👍' : score >= 4 ? '😊' : '📚'}
+          <div className="mb-8 p-6 bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl border-2 border-purple-200">
+            <div className="text-6xl mb-4">
+              {score >= 8 ? '🌟⭐🌟' : score >= 6 ? '🎖️👍🎖️' : score >= 4 ? '😊🎈😊' : '📚💪📚'}
             </div>
-            <p className="text-gray-600">
-              {score >= 8 ? 'Fantastiskt!' :
-               score >= 6 ? 'Bra jobbat!' :
-               score >= 4 ? 'Hyggligt resultat!' :
-               'Träna lite till!'}
+            <p className="text-purple-800 font-bold text-xl">
+              {score >= 8 ? 'FANTASTISKT JOBBAT! Du är en riktig stjärna! ⭐' :
+               score >= 6 ? 'BRA JOBBAT! Du är på rätt väg! 🚀' :
+               score >= 4 ? 'HYGGLIGT! Fortsätt träna så blir du ännu bättre! 💪' :
+               'Träna lite till så blir du en expert! 🎯'}
             </p>
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-6">
             <button
               onClick={restartQuiz}
-              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+              className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-2xl hover:from-green-600 hover:to-emerald-700 transition-all transform hover:scale-105 shadow-lg font-bold text-lg"
             >
-              10 nya frågor
+              🔄 10 nya frågor 🚀
             </button>
             <button
               onClick={() => router.push('/')}
-              className="border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+              className="border-3 border-purple-400 text-purple-700 px-8 py-4 rounded-2xl hover:bg-purple-50 transition-all transform hover:scale-105 shadow-md font-bold text-lg"
             >
-              Tillbaka till startsidan
+              🏠 Tillbaka till startsidan
             </button>
           </div>
         </div>
@@ -146,45 +148,45 @@ export default function MultipleChoicePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-purple-200 via-pink-100 to-blue-200">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h1 className="text-2xl font-bold text-gray-800">Flervalsfrågor</h1>
-              <span className="text-gray-600">
-                {currentQuestion + 1} / {questions.length}
+              <h1 className="text-2xl font-bold text-purple-800">🧠 Flervalsfrågor 🎯</h1>
+              <span className="text-purple-700 font-bold text-lg">
+                {currentQuestion + 1} / {questions.length} 🚀
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all"
+                className="bg-gradient-to-r from-purple-500 to-pink-500 h-4 rounded-full transition-all duration-500 shadow-lg"
                 style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
               ></div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-8">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 border-4 border-purple-200">
             <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6">
-                {question.question}
+              <h2 className="text-2xl font-bold text-purple-900 mb-6 leading-relaxed">
+                🤔 {question.question}
               </h2>
 
               <div className="space-y-3">
                 {question.options.map((option, index) => {
-                  let buttonClass = "w-full p-4 text-left border-2 rounded-lg transition-all duration-300 ";
+                  let buttonClass = "w-full p-5 text-left border-3 rounded-2xl transition-all duration-300 font-semibold text-lg ";
 
                   if (!showFeedback) {
                     buttonClass += selectedAnswer === index
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-blue-300 hover:bg-blue-50";
+                      ? "border-purple-500 bg-purple-100 text-purple-900 shadow-lg transform scale-105"
+                      : "border-purple-200 hover:border-purple-400 hover:bg-purple-50 text-gray-800 hover:transform hover:scale-102 shadow-md";
                   } else {
                     if (index === question.correctAnswer) {
-                      buttonClass += "border-green-500 bg-green-100 text-green-800";
+                      buttonClass += "border-green-500 bg-green-200 text-green-900 shadow-lg transform scale-105";
                     } else if (index === selectedAnswer && index !== question.correctAnswer) {
-                      buttonClass += "border-red-500 bg-red-100 text-red-800";
+                      buttonClass += "border-red-500 bg-red-200 text-red-900 shadow-lg";
                     } else {
-                      buttonClass += "border-gray-200 bg-gray-50 text-gray-500";
+                      buttonClass += "border-gray-300 bg-gray-100 text-gray-600";
                     }
                   }
 
@@ -192,14 +194,14 @@ export default function MultipleChoicePage() {
                     <button
                       key={index}
                       onClick={() => handleAnswerSelect(index)}
-                      className={`${buttonClass} min-h-[60px] touch-manipulation active:scale-[0.98]`}
+                      className={`${buttonClass} min-h-[70px] touch-manipulation active:scale-95`}
                       disabled={showFeedback}
                     >
                       <div className="flex items-center space-x-3">
-                        <span className="flex-shrink-0 w-8 h-8 rounded-full border-2 border-current flex items-center justify-center text-sm font-bold">
+                        <span className="flex-shrink-0 w-10 h-10 rounded-full border-3 border-current flex items-center justify-center text-lg font-bold shadow-md">
                           {String.fromCharCode(65 + index)}
                         </span>
-                        <span className="text-left flex-1 text-base">{option}</span>
+                        <span className="text-left flex-1 text-lg font-medium">{option}</span>
                         {showFeedback && index === question.correctAnswer && (
                           <span className="ml-auto text-green-600 text-xl">✓</span>
                         )}
@@ -213,15 +215,19 @@ export default function MultipleChoicePage() {
               </div>
 
               {showFeedback && (
-                <div className="mt-6 p-4 rounded-lg bg-blue-50 border-l-4 border-blue-500">
-                  <div className="flex items-start space-x-2">
-                    <div className="text-blue-600 text-xl">💡</div>
+                <div className={`mt-6 p-6 rounded-2xl border-3 ${selectedAnswer === question.correctAnswer ? 'bg-green-100 border-green-400' : 'bg-orange-100 border-orange-400'}`}>
+                  <div className="flex items-start space-x-3">
+                    <div className="text-3xl">
+                      {selectedAnswer === question.correctAnswer ? "🎉" : "🤔"}
+                    </div>
                     <div>
-                      <p className="text-blue-800 font-medium mb-1">
-                        {selectedAnswer === question.correctAnswer ? "Rätt svar!" : "Fel svar"}
+                      <p className={`font-bold text-xl mb-2 ${selectedAnswer === question.correctAnswer ? 'text-green-800' : 'text-orange-800'}`}>
+                        {selectedAnswer === question.correctAnswer ? "🌟 Rätt svar! Bra jobbat!" : "💪 Inte rätt den här gången!"}
                       </p>
                       {question.explanation && (
-                        <p className="text-blue-700">{question.explanation}</p>
+                        <p className={`text-lg ${selectedAnswer === question.correctAnswer ? 'text-green-700' : 'text-orange-700'}`}>
+                          💡 {question.explanation}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -229,19 +235,21 @@ export default function MultipleChoicePage() {
               )}
 
               {showFeedback && timeLeft !== null && (
-                <div className="mt-4 text-center">
-                  <p className="text-gray-600">
-                    Nästa fråga om <span className="font-bold text-blue-600">{timeLeft}</span> sekunder...
+                <div className="mt-6 text-center p-4 bg-purple-100 rounded-2xl border-2 border-purple-300">
+                  <p className="text-purple-800 font-bold text-lg">
+                    🚀 Nästa fråga om <span className="text-purple-600 text-xl bg-white px-3 py-1 rounded-full">{timeLeft}</span> sekunder...
                   </p>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">
-              Poäng: <span className="font-bold text-green-600">{score}</span> / {currentQuestion + (showFeedback ? 1 : 0)}
-            </p>
+          <div className="mt-8 text-center">
+            <div className="bg-white rounded-2xl shadow-lg p-4 border-3 border-purple-200 inline-block">
+              <p className="text-purple-800 font-bold text-lg">
+                🏆 Poäng: <span className="text-green-600 text-xl bg-green-100 px-3 py-1 rounded-full">{score}</span> / <span className="text-purple-600">{currentQuestion + (showFeedback ? 1 : 0)}</span>
+              </p>
+            </div>
           </div>
         </div>
       </div>
