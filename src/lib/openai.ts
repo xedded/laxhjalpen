@@ -51,46 +51,29 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
 
     console.log('🚀 Making GPT-4o Vision API call...');
 
-    // Try GPT-4o Vision with comprehensive error handling
+    // Use faster GPT-4o-mini for basic analysis
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `Analysera denna läxa och skapa 10 frågor. Returnera enbart JSON:
-
-              {
-                "subject": "ämne (t.ex. Glosor-Engelska, Matematik, Historia)",
-                "difficulty": "Medel",
-                "isVocabulary": true/false,
-                "questions": [
-                  {
-                    "id": 1,
-                    "question": "Frågan här",
-                    "options": ["alt1", "alt2", "alt3", "alt4"],
-                    "correctAnswer": 1,
-                    "expectedAnswer": "kort svar",
-                    "explanation": "förklaring"
-                  }
-                ]
-              }
-
-              För glosor: Använd BARA orden från bilden. För andra ämnen: Skapa pedagogiska frågor baserat på innehållet.`
+              text: `Se på bilden och skapa 5 enkla frågor. JSON endast:
+              {"subject":"ämne","questions":[{"id":1,"question":"fråga?","options":["a","b","c","d"],"correctAnswer":1,"expectedAnswer":"svar","explanation":"kort förklaring"}]}`
             },
             {
               type: "image_url",
               image_url: {
                 url: `data:image/jpeg;base64,${imageBase64}`,
-                detail: "auto" // Let OpenAI decide optimal detail level
+                detail: "low" // Use low detail for faster processing
               }
             }
           ]
         }
       ],
-      max_tokens: 800, // Further reduced for faster response
+      max_tokens: 400,
       temperature: 0.1,
     });
 

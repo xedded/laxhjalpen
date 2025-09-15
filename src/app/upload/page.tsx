@@ -53,22 +53,13 @@ export default function UploadPage() {
 
         const originalSize = Math.max(img.width, img.height);
 
-        if (originalSize > 3000) {
-          // Very large images (>3000px) - aggressive compression
-          maxWidth = 600;
-          quality = 0.4;
-        } else if (originalSize > 2000) {
-          // Large images (>2000px) - strong compression
-          maxWidth = 650;
-          quality = 0.5;
-        } else if (originalSize > 1200) {
-          // Medium images (>1200px) - moderate compression
-          maxWidth = 700;
+        // Simple compression for all images to speed up processing
+        if (originalSize > 1500) {
+          maxWidth = 512;
           quality = 0.6;
         } else {
-          // Small images (<1200px) - minimal compression for better readability
-          maxWidth = 1024;
-          quality = 0.8;
+          maxWidth = 512;
+          quality = 0.7;
         }
 
         // Calculate new dimensions
@@ -107,7 +98,7 @@ export default function UploadPage() {
 
       // Call AI analysis API with longer timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout for better reliability
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for basic analysis
 
       const response = await fetch('/api/analyze-image', {
         method: 'POST',
