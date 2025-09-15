@@ -20,6 +20,8 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
   difficulty: string;
 }> {
   try {
+    console.log('Attempting GPT-4o-mini Vision analysis...');
+
     // Try GPT-4 Vision first with optimized settings
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini", // Using faster mini model for better timeout handling
@@ -68,6 +70,8 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
       throw new Error('Inget svar från OpenAI');
     }
 
+    console.log('GPT-4o-mini Vision response received, length:', content.length);
+
     // Parse JSON response
     const result = JSON.parse(content);
 
@@ -76,12 +80,15 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
       throw new Error('Felaktig struktur i AI-svaret');
     }
 
+    console.log('GPT-4o-mini Vision analysis successful, questions generated:', result.questions.length);
     return result;
   } catch (error) {
-    console.error('Error analyzing image with GPT-4 Vision, falling back to GPT-3.5:', error);
+    console.error('Error analyzing image with GPT-4o-mini Vision, falling back to GPT-3.5:', error);
 
     // Fallback to GPT-3.5 with generic text analysis
     try {
+      console.log('Attempting GPT-3.5 fallback...');
+
       const fallbackResponse = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [
@@ -121,9 +128,10 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
         throw new Error('Inget svar från fallback-modell');
       }
 
+      console.log('GPT-3.5 fallback successful');
       return JSON.parse(fallbackContent);
     } catch (fallbackError) {
-      console.error('Fallback also failed:', fallbackError);
+      console.error('GPT-3.5 fallback also failed, using demo questions:', fallbackError);
 
       // Final fallback to demo questions
       const demoQuestions: Question[] = [
