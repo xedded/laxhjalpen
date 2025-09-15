@@ -230,7 +230,7 @@ export default function OralQuizPage() {
               {transcription && (
                 <div className="mb-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
                   <p className="text-sm text-blue-600 font-medium mb-1">Du sa:</p>
-                  <p className="text-blue-800">"{transcription}"</p>
+                  <p className="text-blue-800">&quot;{transcription}&quot;</p>
                 </div>
               )}
 

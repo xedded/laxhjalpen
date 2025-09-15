@@ -3,10 +3,19 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+interface Question {
+  id: number;
+  question: string;
+  options?: string[];
+  correctAnswer?: number;
+  expectedAnswer?: string;
+  explanation?: string;
+}
+
 interface QuizData {
   subject: string;
   difficulty: string;
-  questions: any[];
+  questions: Question[];
 }
 
 export default function QuizSetupPage() {

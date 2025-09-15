@@ -58,6 +58,17 @@ export default function MultipleChoicePage() {
   const questions = quizData.questions;
   const question = questions[currentQuestion];
 
+  const nextQuestion = () => {
+    if (currentQuestion >= questions.length - 1) {
+      setShowResults(true);
+    } else {
+      setCurrentQuestion(currentQuestion + 1);
+      setSelectedAnswer(null);
+      setShowFeedback(false);
+      setTimeLeft(null);
+    }
+  };
+
   useEffect(() => {
     if (showFeedback && timeLeft === null) {
       setTimeLeft(3);
@@ -69,7 +80,7 @@ export default function MultipleChoicePage() {
     } else if (timeLeft === 0) {
       nextQuestion();
     }
-  }, [showFeedback, timeLeft]);
+  }, [showFeedback, timeLeft, currentQuestion, questions.length]);
 
   const handleAnswerSelect = (answerIndex: number) => {
     if (showFeedback) return;
@@ -79,17 +90,6 @@ export default function MultipleChoicePage() {
 
     if (answerIndex === question.correctAnswer) {
       setScore(score + 1);
-    }
-  };
-
-  const nextQuestion = () => {
-    if (currentQuestion >= questions.length - 1) {
-      setShowResults(true);
-    } else {
-      setCurrentQuestion(currentQuestion + 1);
-      setSelectedAnswer(null);
-      setShowFeedback(false);
-      setTimeLeft(null);
     }
   };
 
