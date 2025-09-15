@@ -16,11 +16,16 @@ export async function POST(request: NextRequest) {
     // Remove data:image/jpeg;base64, prefix if present
     const base64Data = imageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
 
-    console.log('Starting image analysis, image size:', base64Data.length);
+    console.log('🔍 Starting image analysis');
+    console.log('📊 Base64 data length:', base64Data.length);
+    console.log('📸 Estimated image size:', Math.round((base64Data.length * 3) / (4 * 1024)), 'KB');
 
     const analysis = await analyzeHomeworkImage(base64Data);
 
-    console.log('Image analysis completed successfully, subject:', analysis.subject);
+    console.log('✅ Image analysis completed successfully!');
+    console.log('📚 Subject identified:', analysis.subject);
+    console.log('❓ Questions generated:', analysis.questions.length);
+    console.log('🗣️ Is vocabulary:', analysis.isVocabulary || false);
     return NextResponse.json(analysis);
   } catch (error) {
     console.error('Image analysis error in route:', error);

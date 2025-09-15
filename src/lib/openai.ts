@@ -37,14 +37,19 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
   }>;
 }> {
   try {
-    console.log('Attempting GPT-4o Vision analysis...');
+    console.log('🔍 Starting GPT-4o Vision analysis...');
+    console.log('📊 Image data length:', imageBase64.length);
 
     // Validate base64 input
     if (!imageBase64 || typeof imageBase64 !== 'string') {
       throw new Error('Invalid base64 image data provided');
     }
 
-    console.log('Making GPT-4o Vision API call...');
+    // Estimate compressed image size for logging
+    const estimatedSizeKB = Math.round((imageBase64.length * 3) / (4 * 1024));
+    console.log(`📸 Estimated image size: ${estimatedSizeKB}KB`);
+
+    console.log('🚀 Making GPT-4o Vision API call...');
 
     // Try GPT-4o Vision with comprehensive error handling
     const response = await openai.chat.completions.create({
@@ -94,7 +99,7 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
               type: "image_url",
               image_url: {
                 url: `data:image/jpeg;base64,${imageBase64}`,
-                detail: "low" // Use low detail for faster processing
+                detail: "auto" // Let OpenAI decide optimal detail level
               }
             }
           ]
@@ -146,52 +151,70 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
 
     return result;
   } catch (error) {
-    console.error('Error analyzing image with GPT-4o Vision:', error);
-    console.error('Error details:', {
+    console.error('❌ GPT-4o Vision analysis failed!');
+    console.error('📋 Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : 'No stack trace',
+      name: error instanceof Error ? error.name : 'Unknown',
       type: typeof error,
-      errorObject: error
+      isTimeoutError: error instanceof Error && (error.message.includes('timeout') || error.message.includes('AbortError')),
+      isRateLimitError: error instanceof Error && error.message.includes('rate_limit'),
+      isContentError: error instanceof Error && error.message.includes('content_policy')
     });
-    console.log('Falling back to GPT-3.5...');
+
+    // Check if it's a timeout or rate limit issue
+    if (error instanceof Error) {
+      if (error.message.includes('timeout') || error.message.includes('AbortError')) {
+        console.log('⏰ Vision API timeout - image might be too complex or service overloaded');
+      } else if (error.message.includes('rate_limit')) {
+        console.log('🚦 Rate limit hit - too many requests');
+      } else if (error.message.includes('content_policy')) {
+        console.log('🚫 Content policy violation');
+      } else {
+        console.log('🔧 Other API error:', error.message);
+      }
+    }
+
+    console.log('🔄 Falling back to GPT-3.5 (no vision)...');
 
     // Fallback to GPT-3.5 with generic text analysis
     try {
       console.log('Attempting GPT-3.5 fallback...');
 
-      // Since Vision failed, we'll create subject-agnostic questions that could work for most homework
+      // Create educational questions without image analysis
+      console.log('💡 Creating educational questions without image analysis...');
       const fallbackResponse = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [
           {
             role: "system",
-            content: "Du är en pedagogisk assistent. Skapa frågor som kan hjälpa elever träna studieteknik och förståelse."
+            content: "Du är en pedagogisk assistent som skapar lämpliga frågor för grundskoleelever. Skapa varierade, pedagogiska frågor inom olika ämnen."
           },
           {
             role: "user",
-            content: `Bilden kunde inte analyseras med Vision AI. Skapa 10 studieteknik-frågor som hjälper eleven träna:
+            content: `Bildanalysen misslyckades, men skapa ändå 10 bra pedagogiska frågor för en svensk grundskoleelev.
 
             Returnera JSON:
             {
-              "subject": "Studieteknik",
+              "subject": "Allmänbildning",
               "difficulty": "Medel",
+              "isVocabulary": false,
               "questions": [
                 {
                   "id": 1,
-                  "question": "Vad är ett bra sätt att sammanfatta det du lärt dig?",
-                  "options": ["Bara läsa igen", "Skriva egna anteckningar", "Titta på telefonen", "Hoppa över"],
-                  "correctAnswer": 1,
-                  "expectedAnswer": "skriva egna anteckningar",
-                  "explanation": "Att skriva egna sammanfattningar hjälper hjärnan att bearbeta informationen"
+                  "question": "pedagogisk fråga inom matematik, svenska, naturvetenskap eller historia",
+                  "options": ["alternativ 1", "alternativ 2", "alternativ 3", "alternativ 4"],
+                  "correctAnswer": 0,
+                  "expectedAnswer": "kort svar",
+                  "explanation": "pedagogisk förklaring"
                 }
               ]
             }
 
-            Fokusera på hur man lär sig effektivt, lästekniker, minnesmetoder och studievanor.`
+            Skapa varierande frågor inom olika ämnen som matematik, svenska, naturvetenskap, geografi och historia. Gör dem lämpliga för ålder 10-15 år.`
           }
         ],
         max_tokens: 1500,
-        temperature: 0.4,
+        temperature: 0.3,
       });
 
       const fallbackContent = fallbackResponse.choices[0]?.message?.content;
