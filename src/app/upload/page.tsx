@@ -98,7 +98,8 @@ export default function UploadPage() {
       router.push('/quiz-setup');
     } catch (error) {
       console.error('Analysis error:', error);
-      alert(`Kunde inte analysera bilden: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Okänt fel';
+      alert(`Kunde inte analysera bilden: ${errorMessage}`);
       setAnalyzing(false);
     }
   };
