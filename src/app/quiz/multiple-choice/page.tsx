@@ -9,12 +9,29 @@ interface Question {
   options: string[];
   correctAnswer: number;
   explanation?: string;
+  questionLanguage?: string;
+  answerLanguage?: string;
+  vocabularyPair?: {
+    word1: string;
+    word2: string;
+    language1: string;
+    language2: string;
+  };
 }
 
 interface QuizData {
   subject: string;
   difficulty: string;
   questions: Question[];
+  language?: string;
+  isVocabulary?: boolean;
+  vocabularyLanguages?: string[];
+  vocabularyPairs?: Array<{
+    word1: string;
+    word2: string;
+    language1: string;
+    language2: string;
+  }>;
 }
 
 export default function MultipleChoicePage() {
