@@ -66,9 +66,9 @@ export default function UploadPage() {
           maxWidth = 700;
           quality = 0.6;
         } else {
-          // Small images (<1200px) - light compression
-          maxWidth = 800;
-          quality = 0.7;
+          // Small images (<1200px) - minimal compression for better readability
+          maxWidth = 1024;
+          quality = 0.8;
         }
 
         // Calculate new dimensions
@@ -105,9 +105,9 @@ export default function UploadPage() {
 
       setAnalysisProgress('Skickar till AI för analys...');
 
-      // Call AI analysis API with timeout
+      // Call AI analysis API with longer timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 35000); // 35 second timeout with better compression
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout for better reliability
 
       const response = await fetch('/api/analyze-image', {
         method: 'POST',
@@ -143,7 +143,9 @@ export default function UploadPage() {
 
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          errorMessage = 'Analysen tog för lång tid - prova med en enklare bild eller försök igen';
+          errorMessage = 'Analysen tog för lång tid. Prova att ladda upp bilden igen eller välj en tydligare bild.';
+        } else if (error.message.includes('timeout')) {
+          errorMessage = 'Timeout - servern svarar långsamt. Försök igen om en stund.';
         } else {
           errorMessage = error.message;
         }

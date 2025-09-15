@@ -60,40 +60,25 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
           content: [
             {
               type: "text",
-              text: `Analysera denna läxbild och identifiera ämnet och skapa relevanta frågor.
+              text: `Analysera denna läxa och skapa 10 frågor. Returnera enbart JSON:
 
-              VIKTIGT: Returnera enbart giltig JSON utan extra text:
               {
-                "subject": "identifierat ämne (t.ex. Glosor-Engelska, Glosor-Spanska, Matematik, Fysik, Historia, Svenska)",
+                "subject": "ämne (t.ex. Glosor-Engelska, Matematik, Historia)",
                 "difficulty": "Medel",
-                "language": "språk för glosor eller 'svenska' för andra ämnen",
                 "isVocabulary": true/false,
-                "vocabularyLanguages": ["svenska", "engelska"], // endast om isVocabulary är true
-                "vocabularyPairs": [{"word1": "hund", "word2": "dog", "language1": "svenska", "language2": "engelska"}], // exakta ordpar från bilden
                 "questions": [
                   {
                     "id": 1,
-                    "question": "Vad heter 'hund' på engelska?",
-                    "options": ["cat", "dog", "bird", "fish"],
+                    "question": "Frågan här",
+                    "options": ["alt1", "alt2", "alt3", "alt4"],
                     "correctAnswer": 1,
-                    "expectedAnswer": "dog",
-                    "explanation": "Hund översätts till dog på engelska",
-                    "questionLanguage": "svenska",
-                    "answerLanguage": "engelska",
-                    "vocabularyPair": {"word1": "hund", "word2": "dog", "language1": "svenska", "language2": "engelska"}
+                    "expectedAnswer": "kort svar",
+                    "explanation": "förklaring"
                   }
                 ]
               }
 
-              KRITISKA INSTRUKTIONER FÖR GLOSOR:
-              - Om du ser ordpar/glosor, extrahera EXAKT de ord som visas i bilden
-              - Lägg alla ordpar i vocabularyPairs arrayen med exakt stavning från bilden
-              - För varje glosfråga, använd exakt ordet från bilden i vocabularyPair
-              - Skapa ENDAST frågor baserat på orden som faktiskt syns i bilden
-              - Gissa ALDRIG översättningar - använd bara vad som står i bilden
-              - För multiple choice, använd andra ord från bilden som distractors
-
-              Skapa exakt 10 frågor baserat på vad du ser i bilden. Om glosor, använd bara orden från bilden.`
+              För glosor: Använd BARA orden från bilden. För andra ämnen: Skapa pedagogiska frågor baserat på innehållet.`
             },
             {
               type: "image_url",
@@ -105,7 +90,7 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
           ]
         }
       ],
-      max_tokens: 1200, // Reduced for faster response
+      max_tokens: 800, // Further reduced for faster response
       temperature: 0.1,
     });
 
