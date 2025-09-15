@@ -40,13 +40,37 @@ export default function UploadPage() {
     }
   };
 
-  const compressImage = (file: File, maxWidth: number = 800, quality: number = 0.6): Promise<string> => {
+  const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d')!;
       const img = new Image();
 
       img.onload = () => {
+        // Smart scaling based on original image size
+        let maxWidth: number;
+        let quality: number;
+
+        const originalSize = Math.max(img.width, img.height);
+
+        if (originalSize > 3000) {
+          // Very large images (>3000px) - aggressive compression
+          maxWidth = 600;
+          quality = 0.4;
+        } else if (originalSize > 2000) {
+          // Large images (>2000px) - strong compression
+          maxWidth = 650;
+          quality = 0.5;
+        } else if (originalSize > 1200) {
+          // Medium images (>1200px) - moderate compression
+          maxWidth = 700;
+          quality = 0.6;
+        } else {
+          // Small images (<1200px) - light compression
+          maxWidth = 800;
+          quality = 0.7;
+        }
+
         // Calculate new dimensions
         const ratio = Math.min(maxWidth / img.width, maxWidth / img.height);
         const newWidth = img.width * ratio;
@@ -59,6 +83,8 @@ export default function UploadPage() {
         // Draw and compress
         ctx.drawImage(img, 0, 0, newWidth, newHeight);
         const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+
+        console.log(`Image compressed: ${originalSize}px → ${Math.max(newWidth, newHeight)}px, quality: ${quality}`);
         resolve(compressedBase64);
       };
 
@@ -70,17 +96,18 @@ export default function UploadPage() {
     if (!file) return;
 
     setAnalyzing(true);
-    setAnalysisProgress('Komprimerar bild...');
+    setAnalysisProgress('Analyserar bildstorlek...');
 
     try {
-      // Compress image aggressively for faster analysis (800px, 50% quality)
-      const compressedBase64 = await compressImage(file, 800, 0.5);
+      // Smart compression based on image size
+      setAnalysisProgress('Optimerar bild för snabb analys...');
+      const compressedBase64 = await compressImage(file);
 
       setAnalysisProgress('Skickar till AI för analys...');
 
       // Call AI analysis API with timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 35000); // 35 second timeout with better compression
 
       const response = await fetch('/api/analyze-image', {
         method: 'POST',
@@ -206,6 +233,9 @@ export default function UploadPage() {
                 </h3>
                 <p className="text-gray-600">
                   {file.name}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {(file.size / 1024 / 1024).toFixed(1)} MB
                 </p>
               </div>
 
