@@ -162,6 +162,7 @@ export default function UploadPage() {
               </div>
 
               <div className="mb-6">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={URL.createObjectURL(file)}
                   alt="Uploaded homework"

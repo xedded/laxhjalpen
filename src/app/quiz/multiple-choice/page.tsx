@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Question {
@@ -28,6 +28,17 @@ export default function MultipleChoicePage() {
 
   const router = useRouter();
 
+  const nextQuestion = useCallback(() => {
+    if (currentQuestion >= (quizData?.questions.length || 0) - 1) {
+      setShowResults(true);
+    } else {
+      setCurrentQuestion(currentQuestion + 1);
+      setSelectedAnswer(null);
+      setShowFeedback(false);
+      setTimeLeft(null);
+    }
+  }, [currentQuestion, quizData?.questions.length]);
+
   useEffect(() => {
     // Get quiz data from sessionStorage
     const storedData = sessionStorage.getItem('quizData');
@@ -44,6 +55,19 @@ export default function MultipleChoicePage() {
     }
   }, [router]);
 
+  useEffect(() => {
+    if (showFeedback && timeLeft === null) {
+      setTimeLeft(3);
+    }
+
+    if (timeLeft !== null && timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (timeLeft === 0) {
+      nextQuestion();
+    }
+  }, [showFeedback, timeLeft, nextQuestion]);
+
   if (!quizData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -57,30 +81,6 @@ export default function MultipleChoicePage() {
 
   const questions = quizData.questions;
   const question = questions[currentQuestion];
-
-  const nextQuestion = () => {
-    if (currentQuestion >= questions.length - 1) {
-      setShowResults(true);
-    } else {
-      setCurrentQuestion(currentQuestion + 1);
-      setSelectedAnswer(null);
-      setShowFeedback(false);
-      setTimeLeft(null);
-    }
-  };
-
-  useEffect(() => {
-    if (showFeedback && timeLeft === null) {
-      setTimeLeft(3);
-    }
-
-    if (timeLeft !== null && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0) {
-      nextQuestion();
-    }
-  }, [showFeedback, timeLeft, currentQuestion, questions.length]);
 
   const handleAnswerSelect = (answerIndex: number) => {
     if (showFeedback) return;
