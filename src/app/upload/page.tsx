@@ -170,50 +170,58 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-200 via-pink-100 to-blue-200">
+    <div className="page-container">
       <NavigationHeader />
-      <div className="container mx-auto px-4 py-8">
+
+      <div className="content-container">
         <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h1 className="heading-lg mb-4">
               Ladda upp din läxa
             </h1>
-            <p className="text-gray-600">
+            <p className="body-lg">
               Fotografera eller ladda upp en bild av dina glosor eller läxtext
             </p>
           </div>
 
           {!file ? (
             <div
-              className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors ${
-                dragActive
-                  ? 'border-indigo-500 bg-indigo-50'
-                  : 'border-gray-300 bg-white hover:border-indigo-400'
-              }`}
+              className={`upload-zone ${dragActive ? 'active' : ''}`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
               onDragOver={handleDrag}
               onDrop={handleDrop}
             >
-              <div className="text-6xl mb-4">📷</div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+
+              <h3 className="heading-sm mb-2">
                 Dra och släpp din bild här
               </h3>
-              <p className="text-gray-500 mb-6">
+              <p className="body-md mb-8">
                 eller välj en av alternativen nedan
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={takePhoto}
-                  className="bg-indigo-600 text-white px-6 py-4 rounded-xl hover:bg-indigo-700 transition-colors flex items-center gap-3 text-lg font-medium min-h-[60px] justify-center"
+                  className="btn btn-primary"
                 >
-                  <span className="text-2xl">📱</span>
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
                   Ta ett foto
                 </button>
 
-                <label className="bg-white border-2 border-indigo-600 text-indigo-600 px-6 py-4 rounded-xl hover:bg-indigo-50 transition-colors cursor-pointer flex items-center gap-3 text-lg font-medium min-h-[60px] justify-center">
-                  <span className="text-2xl">📁</span>
+                <label className="btn btn-secondary cursor-pointer">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
                   Välj fil
                   <input
                     type="file"
@@ -225,26 +233,30 @@ export default function UploadPage() {
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-xl shadow-lg p-8">
+            <div className="card">
               <div className="text-center mb-6">
-                <div className="text-4xl mb-4">✅</div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="heading-sm mb-3">
                   Bild uppladdad!
                 </h3>
-                <p className="text-gray-600">
+                <p className="body-md mb-1">
                   {file.name}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="body-sm">
                   {(file.size / 1024 / 1024).toFixed(1)} MB
                 </p>
               </div>
 
-              <div className="mb-6">
+              <div className="mb-8">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={URL.createObjectURL(file)}
                   alt="Uploaded homework"
-                  className="max-w-full max-h-64 mx-auto rounded-lg shadow-md"
+                  className="max-w-full max-h-64 mx-auto rounded-xl shadow-sm border border-gray-100"
                 />
               </div>
 
@@ -252,29 +264,37 @@ export default function UploadPage() {
                 <button
                   onClick={analyzeImage}
                   disabled={analyzing}
-                  className={`px-8 py-3 rounded-lg text-white font-medium transition-colors ${
+                  className={`btn btn-large ${
                     analyzing
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-green-600 hover:bg-green-700'
+                      ? 'bg-gray-400 cursor-not-allowed text-white'
+                      : 'btn-primary'
                   }`}
                 >
                   {analyzing ? (
                     <span className="flex items-center gap-3">
-                      <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                      <div className="loading-spinner"></div>
                       <div className="text-left">
-                        <div className="font-bold">Analyserar...</div>
+                        <div className="font-semibold">Analyserar...</div>
                         <div className="text-sm opacity-90">{analysisProgress}</div>
                       </div>
                     </span>
                   ) : (
-                    'Analysera och skapa förhör'
+                    <>
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                      Analysera och skapa förhör
+                    </>
                   )}
                 </button>
 
                 <button
                   onClick={() => setFile(null)}
-                  className="border-2 border-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="btn btn-secondary btn-large"
                 >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
                   Välj annan bild
                 </button>
               </div>
