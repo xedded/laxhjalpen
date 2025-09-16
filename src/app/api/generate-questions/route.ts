@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
           role: "user",
           content: `Text från elevens läxa: "${text}"
 
-Skapa 5 pedagogiska frågor baserat på denna text. Frågorna ska vara lämpliga för grundskoleelever och testa förståelse av innehållet.
+Skapa EXAKT 8 pedagogiska frågor baserat ENDAST på denna text. Frågorna ska vara lämpliga för grundskoleelever och testa förståelse av innehållet som finns i texten.
 
 Returnera JSON:
 {
@@ -129,7 +129,7 @@ Returnera JSON:
     // Fallback to simple questions if AI fails
     if (text && text.length > 3) {
       try {
-        const words = text.split(/\s+/).filter((word: string) => word.length > 3).slice(0, 5);
+        const words = text.split(/\s+/).filter((word: string) => word.length > 3).slice(0, 8);
         const fallbackQuestions: Question[] = words.map((word: string, index: number) => ({
           id: index + 1,
           question: `Vad betyder "${word}"?`,

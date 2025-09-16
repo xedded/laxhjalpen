@@ -50,7 +50,7 @@ export default function Home() {
               </svg>
             </div>
             <h3 className="heading-sm mb-3">Personliga frågor</h3>
-            <p className="body-md">Genererar 10 frågor anpassade efter ditt specifika läxmaterial</p>
+            <p className="body-md">Genererar 8 frågor anpassade efter ditt specifika läxmaterial</p>
           </div>
 
           <div className="card-compact text-center">

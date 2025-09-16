@@ -110,26 +110,32 @@ export async function generateQuestionsFromText(text: string): Promise<{
       messages: [
         {
           role: "system",
-          content: "Du är en pedagogisk AI som skapar lämpliga frågor för svenska grundskoleelever baserat på textinnehåll."
+          content: "Du är en pedagogisk AI som skapar frågor för svenska grundskoleelever. Du får ENDAST använda information som finns explicit i den givna texten. Skapa inga frågor baserat på din egen kunskap - bara från textinnehållet."
         },
         {
           role: "user",
           content: `Text från elevens läxa: "${text}"
 
-Skapa 5 pedagogiska frågor baserat på denna text. Frågorna ska vara lämpliga för grundskoleelever och testa förståelse av innehållet.
+VIKTIGA REGLER:
+- Skapa EXAKT 8 frågor baserat ENDAST på denna text
+- Fråga ENDAST om saker som finns explicit i texten
+- Använd BARA ord och begrepp från texten
+- Om det finns exempel/svar i texten - använd dem som svarsalternativ
+- Svara INTE ifrån egen kunskap - bara från textinnehållet
+- Var saklig och objektiv
 
 Returnera JSON:
 {
-  "subject": "identifierat ämne (t.ex. Matematik, Svenska, Historia, etc.)",
+  "subject": "identifierat ämne baserat på textinnehåll",
   "difficulty": "Lätt/Medel/Svår",
   "questions": [
     {
       "id": 1,
-      "question": "tydlig fråga om textinnehållet",
-      "options": ["rätt svar", "felaktigt alternativ 1", "felaktigt alternativ 2", "felaktigt alternativ 3"],
+      "question": "konkret fråga om något som står i texten",
+      "options": ["svar från texten", "annat från texten", "tredje från texten", "fjärde från texten"],
       "correctAnswer": 0,
-      "expectedAnswer": "kort rätt svar",
-      "explanation": "pedagogisk förklaring varför detta är rätt"
+      "expectedAnswer": "exakt ord/uttryck från texten",
+      "explanation": "förklaring baserad endast på textinnehållet"
     }
   ]
 }`
@@ -195,7 +201,7 @@ Returnera JSON:
     // Fallback to simple questions if AI fails
     if (text && text.length > 3) {
       try {
-        const words = text.split(/\s+/).filter((word: string) => word.length > 3).slice(0, 5);
+        const words = text.split(/\s+/).filter((word: string) => word.length > 3).slice(0, 8);
         const fallbackQuestions: Question[] = words.map((word: string, index: number) => ({
           id: index + 1,
           question: `Vad betyder "${word}"?`,
