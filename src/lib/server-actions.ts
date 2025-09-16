@@ -274,19 +274,22 @@ Returnera JSON:
             .filter(word => word.length > 4)
             .filter(word => !/^(att|och|eller|för|med|till|från|som|när|där|det|den|dem|denna|detta|dessa)$/i.test(word));
 
-          if (numbers.length > 0) {
+          if (numbers.length > 0 && numbers[0]) {
             // Numeric fact question
             const number = numbers[0];
             const context = sentence.replace(number, '___');
-            fallbackQuestions.push({
-              id: i + 1,
-              question: `Vilket tal nämns i: "${context.substring(0, 60)}..."?`,
-              options: [number, (parseInt(number) + 1).toString(), (parseInt(number) - 1).toString(), (parseInt(number) * 2).toString()],
-              correctAnswer: 0,
-              expectedAnswer: number,
-              explanation: `Enligt texten är talet ${number}`
-            });
-          } else if (capitalized.length > 0) {
+            const numValue = parseInt(number);
+            if (!isNaN(numValue)) {
+              fallbackQuestions.push({
+                id: i + 1,
+                question: `Vilket tal nämns i: "${context.substring(0, 60)}..."?`,
+                options: [number, (numValue + 1).toString(), (numValue - 1).toString(), (numValue * 2).toString()],
+                correctAnswer: 0,
+                expectedAnswer: number,
+                explanation: `Enligt texten är talet ${number}`
+              });
+            }
+          } else if (capitalized.length > 0 && capitalized[0]) {
             // Name/proper noun question
             const name = capitalized[0];
             const context = sentence.replace(name, '___');
@@ -298,7 +301,7 @@ Returnera JSON:
               expectedAnswer: name,
               explanation: `Enligt texten heter det ${name}`
             });
-          } else if (keyWords.length > 0) {
+          } else if (keyWords.length > 0 && keyWords[0]) {
             // Key concept question
             const keyWord = keyWords[0];
             const context = sentence.replace(keyWord, '___');
