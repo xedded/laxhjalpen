@@ -356,9 +356,13 @@ export async function analyzeOralAnswer(
             `VIKTIGT: Detta är en glosfråga baserad på exakt ordpar från elevens läxbild.
             Målordet från glosorna: "${expectedAnswer}" (från ordparet: ${vocabularyPair.word1} ↔ ${vocabularyPair.word2})
 
+            OBS! Målordet kan innehålla flera alternativ separerade med komma, semikolon, eller "eller".
+            T.ex. "hund, valp" eller "bil; fordon" eller "gå eller springa".
+            Om målordet har flera alternativ räcker det att eleven svarar ETT av dem korrekt.
+
             Bedöm svaret enligt följande kriterier:
-            1. Om svaret är exakt målordet eller mycket nära variant (plural/singular) → isCorrect: true, score: 90-100
-            2. Om svaret är en korrekt översättning men INTE målordet → isCorrect: false, isValidTranslation: true, score: 40-60
+            1. Om svaret matchar ETT av alternativen i målordet → isCorrect: true, score: 90-100
+            2. Om svaret är en korrekt översättning men inte något av målordsalternativen → isCorrect: false, isValidTranslation: true, score: 40-60
             3. Om svaret är helt fel → isCorrect: false, isValidTranslation: false, score: 0-30
 
             För scenario 2, ge pedagogisk feedback som förklarar att svaret är en bra översättning men inte det ord eleven ska lära sig från glosorna.`
@@ -437,18 +441,28 @@ Returnera JSON med isCorrect (boolean), feedback (text) och score (0-100).`
     } catch (fallbackError) {
       console.error('All AI models failed, using keyword matching:', fallbackError);
 
-      // Final fallback: simple keyword matching
-      const lowerAnswer = transcribedAnswer.toLowerCase();
-      const lowerExpected = expectedAnswer.toLowerCase();
+      // Final fallback: enhanced keyword matching with multiple alternatives
+      const lowerAnswer = transcribedAnswer.toLowerCase().trim();
 
-      const isCorrect = lowerAnswer.includes(lowerExpected) ||
-                       lowerExpected.includes(lowerAnswer) ||
-                       lowerAnswer === lowerExpected;
+      // Split expected answer by common separators to handle multiple valid answers
+      const expectedAlternatives = expectedAnswer.toLowerCase()
+        .split(/[,;]|\s+eller\s+|\s+or\s+|\s*\/\s*/)
+        .map(alt => alt.trim())
+        .filter(alt => alt.length > 0);
+
+      // Check if the answer matches any of the alternatives
+      const isCorrect = expectedAlternatives.some(alternative => {
+        return lowerAnswer.includes(alternative) ||
+               alternative.includes(lowerAnswer) ||
+               lowerAnswer === alternative;
+      });
 
       const score = isCorrect ? 85 : 30;
       const feedback = isCorrect
         ? "Bra jobbat! Ditt svar är korrekt."
-        : `Inte helt rätt. Rätt svar är: ${expectedAnswer}. Försök igen!`;
+        : expectedAlternatives.length > 1
+          ? `Inte helt rätt. Rätt svar kan vara: ${expectedAlternatives.join(' eller ')}. Försök igen!`
+          : `Inte helt rätt. Rätt svar är: ${expectedAnswer}. Försök igen!`;
 
       return {
         isCorrect,
