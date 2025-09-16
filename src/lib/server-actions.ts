@@ -25,6 +25,40 @@ interface AnalysisResult {
   isVocabulary: boolean;
 }
 
+// Function to shuffle answer options and update correct answer index
+function shuffleAnswerOptions(questions: Question[]): Question[] {
+  return questions.map(question => {
+    if (!question.options || question.options.length === 0) {
+      return question;
+    }
+
+    // Find the correct answer text
+    const correctAnswerText = question.options[question.correctAnswer];
+
+    // Create array of options with their original indices
+    const optionsWithIndex = question.options.map((option, index) => ({
+      option,
+      originalIndex: index
+    }));
+
+    // Shuffle the options array
+    for (let i = optionsWithIndex.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [optionsWithIndex[i], optionsWithIndex[j]] = [optionsWithIndex[j], optionsWithIndex[i]];
+    }
+
+    // Extract shuffled options and find new correct answer index
+    const shuffledOptions = optionsWithIndex.map(item => item.option);
+    const newCorrectAnswerIndex = shuffledOptions.findIndex(option => option === correctAnswerText);
+
+    return {
+      ...question,
+      options: shuffledOptions,
+      correctAnswer: newCorrectAnswerIndex
+    };
+  });
+}
+
 export async function extractTextFromImage(imageBase64: string): Promise<{
   text: string;
   wordCount: number;
@@ -188,10 +222,13 @@ Returnera JSON:
 
     console.log('✅ Server action question generation completed!');
 
+    // Shuffle answer options to randomize correct answer positions
+    const shuffledQuestions = shuffleAnswerOptions(result.questions);
+
     const analysisResult: AnalysisResult = {
       subject: result.subject || "Allmänbildning",
       difficulty: result.difficulty || "Medel",
-      questions: result.questions,
+      questions: shuffledQuestions,
       keywords,
       language: "svenska",
       isVocabulary: false
@@ -253,10 +290,13 @@ Returnera JSON:
 
         console.log('🔄 Using fallback questions from text');
 
+        // Shuffle fallback questions too
+        const shuffledFallbackQuestions = shuffleAnswerOptions(fallbackQuestions);
+
         const fallbackResult: AnalysisResult = {
           subject: "Textanalys",
           difficulty: "Lätt",
-          questions: fallbackQuestions,
+          questions: shuffledFallbackQuestions,
           keywords: text.split(/\s+/).filter((word: string) => word.length > 3).slice(0, 10),
           language: "svenska",
           isVocabulary: false
