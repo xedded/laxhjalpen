@@ -243,48 +243,83 @@ Returnera JSON:
     console.error('Server action question generation error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-    // Fallback to simple questions if AI fails
+    // Fallback to fact-based questions if AI fails
     if (text && text.length > 3) {
       try {
-        // Extract key concepts and phrases instead of just words
-        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
-        const fallbackQuestions: Question[] = sentences.slice(0, 8).map((sentence: string, index: number) => {
-          const cleanSentence = sentence.trim();
-          const words = cleanSentence.split(/\s+/);
-          const keyPhrase = words.length > 5 ? words.slice(0, 5).join(' ') + '...' : cleanSentence;
+        // Clean text by removing likely headers and noise
+        const cleanedText = text
+          .replace(/^.{1,50}$/gm, '') // Remove short lines (likely headers)
+          .replace(/^\d+\.?\s*/gm, '') // Remove numbered list prefixes
+          .replace(/^[-•*]\s*/gm, '') // Remove bullet points
+          .trim();
 
-          return {
-            id: index + 1,
-            question: `Vad handlar denna del av texten om: "${keyPhrase}"?`,
-            options: [
-              "Information som beskrivs i texten",
-              "En annan del av textinnehållet",
-              "Ett relaterat men annat ämne",
-              "Bakgrundsinformation"
-            ],
-            correctAnswer: 0,
-            expectedAnswer: "Information som beskrivs i texten",
-            explanation: `Detta avsnitt behandlar innehåll från den ursprungliga texten`
-          };
-        });
+        // Extract meaningful sentences with facts
+        const sentences = cleanedText
+          .split(/[.!?]+/)
+          .map(s => s.trim())
+          .filter(s => s.length > 20 && s.length < 200) // Focus on substantial sentences
+          .filter(s => /\w+.*\w+/.test(s)) // Must contain multiple words
+          .slice(0, 12); // Get more sentences to work with
 
-        // If we don't have enough sentences, pad with general questions
-        while (fallbackQuestions.length < 8) {
-          const words = text.split(/\s+/).filter((word: string) => word.length > 4);
-          const randomWord = words[Math.floor(Math.random() * words.length)];
+        const fallbackQuestions: Question[] = [];
 
+        // Create fact-based questions from sentences
+        for (let i = 0; i < Math.min(sentences.length, 8); i++) {
+          const sentence = sentences[i];
+
+          // Extract key facts from sentence
+          const numbers = sentence.match(/\d+/g) || [];
+          const capitalized = sentence.match(/\b[A-ZÅÄÖ][a-zåäö]+\b/g) || [];
+          const keyWords = sentence.split(/\s+/)
+            .filter(word => word.length > 4)
+            .filter(word => !/^(att|och|eller|för|med|till|från|som|när|där|det|den|dem|denna|detta|dessa)$/i.test(word));
+
+          if (numbers.length > 0) {
+            // Numeric fact question
+            const number = numbers[0];
+            const context = sentence.replace(number, '___');
+            fallbackQuestions.push({
+              id: i + 1,
+              question: `Vilket tal nämns i: "${context.substring(0, 60)}..."?`,
+              options: [number, (parseInt(number) + 1).toString(), (parseInt(number) - 1).toString(), (parseInt(number) * 2).toString()],
+              correctAnswer: 0,
+              expectedAnswer: number,
+              explanation: `Enligt texten är talet ${number}`
+            });
+          } else if (capitalized.length > 0) {
+            // Name/proper noun question
+            const name = capitalized[0];
+            const context = sentence.replace(name, '___');
+            fallbackQuestions.push({
+              id: i + 1,
+              question: `Vad heter det som nämns i: "${context.substring(0, 60)}..."?`,
+              options: [name, "Ett annat namn", "Något liknande", "Okänt namn"],
+              correctAnswer: 0,
+              expectedAnswer: name,
+              explanation: `Enligt texten heter det ${name}`
+            });
+          } else if (keyWords.length > 0) {
+            // Key concept question
+            const keyWord = keyWords[0];
+            const context = sentence.replace(keyWord, '___');
+            fallbackQuestions.push({
+              id: i + 1,
+              question: `Vilket begrepp passar här: "${context.substring(0, 60)}..."?`,
+              options: [keyWord, "Ett annat begrepp", "Något relaterat", "Inget av ovan"],
+              correctAnswer: 0,
+              expectedAnswer: keyWord,
+              explanation: `Enligt texten är begreppet ${keyWord}`
+            });
+          }
+        }
+
+        // Ensure we have 8 questions
+        while (fallbackQuestions.length < 8 && fallbackQuestions.length > 0) {
+          const existingQ = fallbackQuestions[fallbackQuestions.length % fallbackQuestions.length];
           fallbackQuestions.push({
+            ...existingQ,
             id: fallbackQuestions.length + 1,
-            question: `Vilket sammanhang används ordet "${randomWord}" i texten?`,
-            options: [
-              "Som en del av huvudinnehållet",
-              "Som ett exempel",
-              "Som en förklaring",
-              "Som en jämförelse"
-            ],
-            correctAnswer: 0,
-            expectedAnswer: "Som en del av huvudinnehållet",
-            explanation: `Ordet används för att beskriva textinnehållet`
+            question: existingQ.question.replace('Vilket', 'Vad')
           });
         }
 
