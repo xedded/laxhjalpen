@@ -26,6 +26,7 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
   questions: Question[];
   subject: string;
   difficulty: string;
+  keywords?: string[];
   language?: string;
   isVocabulary?: boolean;
   vocabularyLanguages?: string[];
@@ -37,7 +38,7 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
   }>;
 }> {
   try {
-    console.log('🔍 Starting GPT-4o Vision analysis...');
+    console.log('🔍 Starting ultra-fast OCR analysis...');
     console.log('📊 Image data length:', imageBase64.length);
 
     // Validate base64 input
@@ -45,94 +46,58 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
       throw new Error('Invalid base64 image data provided');
     }
 
-    // Estimate compressed image size for logging
-    const estimatedSizeKB = Math.round((imageBase64.length * 3) / (4 * 1024));
-    console.log(`📸 Estimated image size: ${estimatedSizeKB}KB`);
+    console.log('🚀 Making single OCR API call...');
 
-    console.log('🚀 Making GPT-4o Vision API call...');
-
-    // Use GPT-4o for reliable image analysis
+    // Ultra-minimal OCR approach for Vercel timeout
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `Analysera bilden och skapa 8 enkla frågor baserat på innehållet. Returnera endast JSON:
-
-              {
-                "subject": "identifierat ämne",
-                "difficulty": "Lätt",
-                "isVocabulary": false,
-                "questions": [
-                  {
-                    "id": 1,
-                    "question": "fråga baserad på bildinnehåll",
-                    "options": ["alternativ 1", "alternativ 2", "alternativ 3", "alternativ 4"],
-                    "correctAnswer": 0,
-                    "expectedAnswer": "enkelt svar",
-                    "explanation": "kort förklaring"
-                  }
-                ]
-              }`
+              text: `Läs bara text från bilden. Returnera ord separerade med komma.`
             },
             {
               type: "image_url",
               image_url: {
                 url: `data:image/jpeg;base64,${imageBase64}`,
-                detail: "auto" // Let OpenAI decide optimal detail
+                detail: "low"
               }
             }
           ]
         }
       ],
-      max_tokens: 600,
-      temperature: 0.1,
+      max_tokens: 100,
+      temperature: 0,
     });
 
-    console.log('GPT-4o Vision API call completed successfully');
+    const content = response.choices[0]?.message?.content || '';
+    console.log('OCR result:', content);
 
-    const content = response.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error('Inget svar från OpenAI');
-    }
+    // Extract keywords from the text
+    const keywords = content
+      .split(/[,\s\n]+/)
+      .filter(word => word.length > 2)
+      .slice(0, 8);
 
-    console.log('GPT-4o Vision response received, length:', content.length);
-    console.log('Raw response content:', content.substring(0, 200) + '...');
+    console.log('Keywords extracted:', keywords);
 
-    // Clean and parse JSON response
-    let cleanContent = content.trim();
-    // Remove potential markdown code blocks
-    if (cleanContent.startsWith('```json')) {
-      cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-    }
-    if (cleanContent.startsWith('```')) {
-      cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
-    }
+    // Generate simple questions locally (no AI)
+    const questions = keywords.slice(0, 5).map((keyword: string, index: number) => ({
+      id: index + 1,
+      question: `Vad betyder "${keyword}"?`,
+      expectedAnswer: keyword,
+      explanation: `Detta ord hittas i texten: ${keyword}`
+    }));
 
-    let result;
-    try {
-      result = JSON.parse(cleanContent);
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      console.error('Failed to parse content:', cleanContent);
-      throw new Error(`JSON parsing failed: ${parseError instanceof Error ? parseError.message : 'Unknown parse error'}`);
-    }
-
-    // Validate structure
-    if (!result.questions || !Array.isArray(result.questions) || result.questions.length === 0) {
-      console.error('Invalid result structure:', result);
-      throw new Error('Felaktig struktur i AI-svaret');
-    }
-
-    console.log('GPT-4o Vision analysis successful!');
-    console.log('Subject identified:', result.subject);
-    console.log('Questions generated:', result.questions.length);
-    console.log('First question:', result.questions[0]?.question);
-
-    return result;
+    return {
+      subject: "Textanalys",
+      difficulty: "Lätt",
+      keywords,
+      questions
+    };
   } catch (error) {
     console.error('❌ GPT-4o Vision analysis failed!');
     console.error('📋 Error details:', {
