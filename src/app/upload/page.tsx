@@ -90,52 +90,36 @@ export default function UploadPage() {
     setAnalysisProgress('Förbereder analys...');
 
     try {
+      // Import server actions dynamically
+      const { extractTextFromImage, generateQuestionsFromText } = await import('@/lib/server-actions');
+
       // Smart compression based on image size
       setAnalysisProgress('Optimerar bild för snabb analys...');
       const compressedBase64 = await compressImage(file);
 
-      // Step 1: Extract text from image
+      // Step 1: Extract text from image using server action
       setAnalysisProgress('Extraherar text från bilden...');
-      const extractResponse = await fetch('/api/extract-text', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageBase64: compressedBase64,
-        }),
-      });
+      const extractResult = await extractTextFromImage(compressedBase64);
 
-      if (!extractResponse.ok) {
-        const errorText = await extractResponse.text();
-        throw new Error(`Text extraction failed: ${extractResponse.status} - ${errorText}`);
+      if (!extractResult.success || !extractResult.text) {
+        throw new Error(extractResult.error || 'Kunde inte extrahera text från bilden');
       }
 
-      const { text } = await extractResponse.json();
-      console.log('Extracted text:', text);
+      console.log('Extracted text:', extractResult.text);
 
-      if (!text || text.trim().length < 3) {
+      if (extractResult.text.trim().length < 3) {
         throw new Error('Ingen läsbar text hittades i bilden. Prova med en tydligare bild.');
       }
 
-      // Step 2: Generate questions from extracted text
+      // Step 2: Generate questions from extracted text using server action
       setAnalysisProgress('Skapar pedagogiska frågor...');
-      const questionsResponse = await fetch('/api/generate-questions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text: text,
-        }),
-      });
+      const questionsResult = await generateQuestionsFromText(extractResult.text);
 
-      if (!questionsResponse.ok) {
-        const errorText = await questionsResponse.text();
-        throw new Error(`Question generation failed: ${questionsResponse.status} - ${errorText}`);
+      if (!questionsResult.success || !questionsResult.result) {
+        throw new Error(questionsResult.error || 'Kunde inte generera frågor från texten');
       }
 
-      const analysis = await questionsResponse.json();
+      const analysis = questionsResult.result;
 
       setAnalysisProgress('Förhör skapat!');
 
