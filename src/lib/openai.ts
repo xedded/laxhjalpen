@@ -88,6 +88,8 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
     const questions = keywords.slice(0, 5).map((keyword: string, index: number) => ({
       id: index + 1,
       question: `Vad betyder "${keyword}"?`,
+      options: [keyword, "Annat ord", "Tredje alternativ", "Fjärde alternativ"],
+      correctAnswer: 0,
       expectedAnswer: keyword,
       explanation: `Detta ord hittas i texten: ${keyword}`
     }));
