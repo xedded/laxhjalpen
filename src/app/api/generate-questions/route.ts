@@ -15,6 +15,40 @@ interface Question {
   explanation: string;
 }
 
+// Function to shuffle answer options and update correct answer index
+function shuffleAnswerOptions(questions: Question[]): Question[] {
+  return questions.map(question => {
+    if (!question.options || question.options.length === 0) {
+      return question;
+    }
+
+    // Find the correct answer text
+    const correctAnswerText = question.options[question.correctAnswer];
+
+    // Create array of options with their original indices
+    const optionsWithIndex = question.options.map((option, index) => ({
+      option,
+      originalIndex: index
+    }));
+
+    // Shuffle the options array
+    for (let i = optionsWithIndex.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [optionsWithIndex[i], optionsWithIndex[j]] = [optionsWithIndex[j], optionsWithIndex[i]];
+    }
+
+    // Extract shuffled options and find new correct answer index
+    const shuffledOptions = optionsWithIndex.map(item => item.option);
+    const newCorrectAnswerIndex = shuffledOptions.findIndex(option => option === correctAnswerText);
+
+    return {
+      ...question,
+      options: shuffledOptions,
+      correctAnswer: newCorrectAnswerIndex
+    };
+  });
+}
+
 export async function POST(request: NextRequest) {
   let text: string = '';
 
@@ -107,40 +141,6 @@ Returnera JSON:
       .slice(0, 10);
 
     console.log('✅ Question generation completed successfully!');
-
-    // Shuffle answer options to randomize correct answer positions
-    const shuffleAnswerOptions = (questions: Question[]): Question[] => {
-      return questions.map(question => {
-        if (!question.options || question.options.length === 0) {
-          return question;
-        }
-
-        // Find the correct answer text
-        const correctAnswerText = question.options[question.correctAnswer];
-
-        // Create array of options with their original indices
-        const optionsWithIndex = question.options.map((option, index) => ({
-          option,
-          originalIndex: index
-        }));
-
-        // Shuffle the options array
-        for (let i = optionsWithIndex.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [optionsWithIndex[i], optionsWithIndex[j]] = [optionsWithIndex[j], optionsWithIndex[i]];
-        }
-
-        // Extract shuffled options and find new correct answer index
-        const shuffledOptions = optionsWithIndex.map(item => item.option);
-        const newCorrectAnswerIndex = shuffledOptions.findIndex(option => option === correctAnswerText);
-
-        return {
-          ...question,
-          options: shuffledOptions,
-          correctAnswer: newCorrectAnswerIndex
-        };
-      });
-    };
 
     // Apply shuffling to questions
     result.questions = shuffleAnswerOptions(result.questions);
