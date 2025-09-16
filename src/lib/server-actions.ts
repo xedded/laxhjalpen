@@ -110,19 +110,27 @@ export async function generateQuestionsFromText(text: string): Promise<{
       messages: [
         {
           role: "system",
-          content: "Du är en pedagogisk AI som skapar frågor för svenska grundskoleelever. Du får ENDAST använda information som finns explicit i den givna texten. Skapa inga frågor baserat på din egen kunskap - bara från textinnehållet."
+          content: "Du är en erfaren lärare som skapar pedagogiska förståelsefrågor för svenska grundskoleelever. Basera frågorna på textinnehållet men gör dem utmanande och lärorika. Fokusera på förståelse, samband och analys - inte på enkla ordmeaningar. Skapa trovärdiga svarsalternativ."
         },
         {
           role: "user",
           content: `Text från elevens läxa: "${text}"
 
-VIKTIGA REGLER:
-- Skapa EXAKT 8 frågor baserat ENDAST på denna text
-- Fråga ENDAST om saker som finns explicit i texten
-- Använd BARA ord och begrepp från texten
-- Om det finns exempel/svar i texten - använd dem som svarsalternativ
-- Svara INTE ifrån egen kunskap - bara från textinnehållet
-- Var saklig och objektiv
+VIKTIGA REGLER FÖR FRÅGORNA:
+- Skapa EXAKT 8 pedagogiska frågor baserat på textinnehållet
+- Fråga om FÖRSTÅELSE av innehållet, inte ordmening
+- Skapa frågor om: huvudbudskap, samband, orsaker, följder, slutsatser
+- Använd begrepp och fakta som finns i texten
+- Skapa TROVÄRDIGA felaktiga alternativ (inte "annat ord", "tredje alternativ")
+
+EXEMPEL PÅ BRA FRÅGOR:
+- "Vad är huvudorsaken till... (enligt texten)?"
+- "Vilket resultat beskrivs när...?"
+- "Hur förklarar texten sambandet mellan X och Y?"
+
+SVARSALTERNATIV:
+- Ett korrekt svar från texten
+- Tre rimliga men felaktiga alternativ (kan vara från texten men fel sammanhang, eller logiska men felaktiga påståenden)
 
 Returnera JSON:
 {
@@ -131,11 +139,11 @@ Returnera JSON:
   "questions": [
     {
       "id": 1,
-      "question": "konkret fråga om något som står i texten",
-      "options": ["svar från texten", "annat från texten", "tredje från texten", "fjärde från texten"],
+      "question": "pedagogisk förståelsefråga om textinnehållet",
+      "options": ["korrekt svar från text", "rimligt felaktigt alternativ", "annat rimligt felaktigt", "tredje rimligt felaktigt"],
       "correctAnswer": 0,
-      "expectedAnswer": "exakt ord/uttryck från texten",
-      "explanation": "förklaring baserad endast på textinnehållet"
+      "expectedAnswer": "kort korrekt svar",
+      "explanation": "förklaring varför detta stämmer enligt texten"
     }
   ]
 }`
@@ -201,15 +209,47 @@ Returnera JSON:
     // Fallback to simple questions if AI fails
     if (text && text.length > 3) {
       try {
-        const words = text.split(/\s+/).filter((word: string) => word.length > 3).slice(0, 8);
-        const fallbackQuestions: Question[] = words.map((word: string, index: number) => ({
-          id: index + 1,
-          question: `Vad betyder "${word}"?`,
-          options: [word, "Annat ord", "Tredje alternativ", "Fjärde alternativ"],
-          correctAnswer: 0,
-          expectedAnswer: word,
-          explanation: `Detta ord finns i texten: ${word}`
-        }));
+        // Extract key concepts and phrases instead of just words
+        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
+        const fallbackQuestions: Question[] = sentences.slice(0, 8).map((sentence: string, index: number) => {
+          const cleanSentence = sentence.trim();
+          const words = cleanSentence.split(/\s+/);
+          const keyPhrase = words.length > 5 ? words.slice(0, 5).join(' ') + '...' : cleanSentence;
+
+          return {
+            id: index + 1,
+            question: `Vad handlar denna del av texten om: "${keyPhrase}"?`,
+            options: [
+              "Information som beskrivs i texten",
+              "En annan del av textinnehållet",
+              "Ett relaterat men annat ämne",
+              "Bakgrundsinformation"
+            ],
+            correctAnswer: 0,
+            expectedAnswer: "Information som beskrivs i texten",
+            explanation: `Detta avsnitt behandlar innehåll från den ursprungliga texten`
+          };
+        });
+
+        // If we don't have enough sentences, pad with general questions
+        while (fallbackQuestions.length < 8) {
+          const words = text.split(/\s+/).filter((word: string) => word.length > 4);
+          const randomWord = words[Math.floor(Math.random() * words.length)];
+
+          fallbackQuestions.push({
+            id: fallbackQuestions.length + 1,
+            question: `Vilket sammanhang används ordet "${randomWord}" i texten?`,
+            options: [
+              "Som en del av huvudinnehållet",
+              "Som ett exempel",
+              "Som en förklaring",
+              "Som en jämförelse"
+            ],
+            correctAnswer: 0,
+            expectedAnswer: "Som en del av huvudinnehållet",
+            explanation: `Ordet används för att beskriva textinnehållet`
+          });
+        }
 
         console.log('🔄 Using fallback questions from text');
 
@@ -217,7 +257,7 @@ Returnera JSON:
           subject: "Textanalys",
           difficulty: "Lätt",
           questions: fallbackQuestions,
-          keywords: words,
+          keywords: text.split(/\s+/).filter((word: string) => word.length > 3).slice(0, 10),
           language: "svenska",
           isVocabulary: false
         };
