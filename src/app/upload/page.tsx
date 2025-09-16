@@ -87,20 +87,16 @@ export default function UploadPage() {
     if (!file) return;
 
     setAnalyzing(true);
-    setAnalysisProgress('Analyserar bildstorlek...');
+    setAnalysisProgress('Förbereder analys...');
 
     try {
       // Smart compression based on image size
       setAnalysisProgress('Optimerar bild för snabb analys...');
       const compressedBase64 = await compressImage(file);
 
-      setAnalysisProgress('Skickar till AI för analys...');
-
-      // Call AI analysis API with longer timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout to avoid premature fallback
-
-      const response = await fetch('/api/analyze-image', {
+      // Step 1: Extract text from image
+      setAnalysisProgress('Extraherar text från bilden...');
+      const extractResponse = await fetch('/api/extract-text', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -108,20 +104,40 @@ export default function UploadPage() {
         body: JSON.stringify({
           imageBase64: compressedBase64,
         }),
-        signal: controller.signal,
       });
 
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API error: ${response.status} - ${errorText}`);
+      if (!extractResponse.ok) {
+        const errorText = await extractResponse.text();
+        throw new Error(`Text extraction failed: ${extractResponse.status} - ${errorText}`);
       }
 
-      setAnalysisProgress('AI analyserar innehållet...');
-      const analysis = await response.json();
+      const { text } = await extractResponse.json();
+      console.log('Extracted text:', text);
 
-      setAnalysisProgress('Skapar förhör...');
+      if (!text || text.trim().length < 3) {
+        throw new Error('Ingen läsbar text hittades i bilden. Prova med en tydligare bild.');
+      }
+
+      // Step 2: Generate questions from extracted text
+      setAnalysisProgress('Skapar pedagogiska frågor...');
+      const questionsResponse = await fetch('/api/generate-questions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: text,
+        }),
+      });
+
+      if (!questionsResponse.ok) {
+        const errorText = await questionsResponse.text();
+        throw new Error(`Question generation failed: ${questionsResponse.status} - ${errorText}`);
+      }
+
+      const analysis = await questionsResponse.json();
+
+      setAnalysisProgress('Förhör skapat!');
 
       // Store analysis in sessionStorage for quiz pages
       sessionStorage.setItem('quizData', JSON.stringify(analysis));
@@ -133,8 +149,8 @@ export default function UploadPage() {
       let errorMessage = 'Okänt fel';
 
       if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          errorMessage = 'Analysen tog för lång tid. Prova att ladda upp bilden igen eller välj en tydligare bild.';
+        if (error.message.includes('Ingen läsbar text')) {
+          errorMessage = error.message;
         } else if (error.message.includes('timeout')) {
           errorMessage = 'Timeout - servern svarar långsamt. Försök igen om en stund.';
         } else {
