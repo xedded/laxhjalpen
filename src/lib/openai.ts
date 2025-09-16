@@ -38,7 +38,7 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
   }>;
 }> {
   try {
-    console.log('🔍 Starting ultra-fast OCR analysis...');
+    console.log('🔍 Starting hybrid OCR + fast analysis...');
     console.log('📊 Image data length:', imageBase64.length);
 
     // Validate base64 input
@@ -46,10 +46,10 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
       throw new Error('Invalid base64 image data provided');
     }
 
-    console.log('🚀 Making single OCR API call...');
+    console.log('🚀 Step 1: OCR text extraction...');
 
-    // Ultra-minimal OCR approach for Vercel timeout
-    const response = await openai.chat.completions.create({
+    // Step 1: Fast OCR to extract text
+    const ocrResponse = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
@@ -57,7 +57,7 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
           content: [
             {
               type: "text",
-              text: `Läs bara text från bilden. Returnera ord separerade med komma.`
+              text: `Extrahera all text från bilden. Returnera som ren text.`
             },
             {
               type: "image_url",
@@ -69,36 +69,90 @@ export async function analyzeHomeworkImage(imageBase64: string): Promise<{
           ]
         }
       ],
-      max_tokens: 100,
+      max_tokens: 200,
       temperature: 0,
     });
 
-    const content = response.choices[0]?.message?.content || '';
-    console.log('OCR result:', content);
+    const extractedText = ocrResponse.choices[0]?.message?.content || '';
+    console.log('Extracted text:', extractedText.substring(0, 100) + '...');
 
-    // Extract keywords from the text
-    const keywords = content
-      .split(/[,\s\n]+/)
-      .filter(word => word.length > 2)
-      .slice(0, 8);
+    if (!extractedText.trim()) {
+      throw new Error('Ingen text kunde extraheras från bilden');
+    }
 
-    console.log('Keywords extracted:', keywords);
+    console.log('🚀 Step 2: Fast question generation...');
 
-    // Generate simple questions locally (no AI)
-    const questions = keywords.slice(0, 5).map((keyword: string, index: number) => ({
-      id: index + 1,
-      question: `Vad betyder "${keyword}"?`,
-      options: [keyword, "Annat ord", "Tredje alternativ", "Fjärde alternativ"],
-      correctAnswer: 0,
-      expectedAnswer: keyword,
-      explanation: `Detta ord hittas i texten: ${keyword}`
-    }));
+    // Step 2: Generate questions from text (no image needed)
+    const questionsResponse = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "user",
+          content: `Text från bild: "${extractedText}"
+
+Skapa 5 pedagogiska frågor baserat på texten. Returnera JSON:
+{
+  "subject": "identifierat ämne",
+  "questions": [
+    {
+      "id": 1,
+      "question": "fråga om innehållet",
+      "options": ["rätt svar", "fel 1", "fel 2", "fel 3"],
+      "correctAnswer": 0,
+      "expectedAnswer": "rätt svar",
+      "explanation": "förklaring"
+    }
+  ]
+}`
+        }
+      ],
+      max_tokens: 800,
+      temperature: 0.3,
+    });
+
+    const questionsContent = questionsResponse.choices[0]?.message?.content;
+    if (!questionsContent) {
+      throw new Error('Kunde inte generera frågor från texten');
+    }
+
+    console.log('Questions response:', questionsContent.substring(0, 100) + '...');
+
+    // Parse questions
+    let result;
+    try {
+      let cleanContent = questionsContent.trim();
+      if (cleanContent.startsWith('```json')) {
+        cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      }
+      if (cleanContent.startsWith('```')) {
+        cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      result = JSON.parse(cleanContent);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      throw new Error('Kunde inte tolka AI-svaret');
+    }
+
+    if (!result.questions || !Array.isArray(result.questions) || result.questions.length === 0) {
+      throw new Error('Inga frågor genererades');
+    }
+
+    // Extract keywords from text
+    const keywords = extractedText
+      .split(/[,\s\n\.\!\?]+/)
+      .filter(word => word.length > 3)
+      .slice(0, 10);
+
+    console.log('✅ Analysis complete!');
+    console.log('Subject:', result.subject);
+    console.log('Questions:', result.questions.length);
+    console.log('Keywords:', keywords.length);
 
     return {
-      subject: "Textanalys",
-      difficulty: "Lätt",
+      subject: result.subject || "Textanalys",
+      difficulty: "Medel",
       keywords,
-      questions
+      questions: result.questions
     };
   } catch (error) {
     console.error('❌ GPT-4o Vision analysis failed!');
