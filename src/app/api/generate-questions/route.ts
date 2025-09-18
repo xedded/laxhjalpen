@@ -68,39 +68,48 @@ export async function POST(request: NextRequest) {
     console.log('📊 Text length:', text.length);
     console.log('📝 Text preview:', text.substring(0, 100) + '...');
 
-    // Generate pedagogical questions from extracted text
+    // Generate comprehensive pedagogical questions from extracted text
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "Du är en pedagogisk AI som skapar lämpliga frågor för svenska grundskoleelever baserat på textinnehåll."
+          content: `Du är en erfaren pedagog och lärare som är expert på att skapa engagerande och lärorika frågor för svenska grundskole- och gymnasieelever. Du skapar varierade frågor som verkligen testar förståelse och uppmuntrar reflektion.`
         },
         {
           role: "user",
-          content: `Text från elevens läxa: "${text}"
+          content: `Analysera följande text från elevens läxa och skapa 8 pedagogiska frågor:
 
-Skapa EXAKT 8 pedagogiska frågor baserat ENDAST på denna text. Frågorna ska vara lämpliga för grundskoleelever och testa förståelse av innehållet som finns i texten.
+"${text}"
+
+INSTRUKTIONER:
+• Analysera texten djupt och identifiera nyckelfakta, koncept, samband och teman
+• Skapa olika typer av frågor: faktafrågor, förståelsefrågor, analysfrågor och tillämpningsfrågor
+• Frågorna ska bygga på textens innehåll men du får vara kreativ i hur du formulerar dem
+• Inkludera både enkla faktafrågor och mer komplexa resonemangsfrågor
+• Se till att frågorna är pedagogiskt värdefulla och hjälper eleven att lära sig
+• Använd varierad svårighetsgrad där det är lämpligt
+• Gör svarsalternativen realistiska och trovärdiga
 
 Returnera JSON:
 {
-  "subject": "identifierat ämne (t.ex. Matematik, Svenska, Historia, etc.)",
-  "difficulty": "Lätt/Medel/Svår",
+  "subject": "identifierat ämne",
+  "difficulty": "anpassad svårighetsgrad baserat på textens komplexitet",
   "questions": [
     {
       "id": 1,
-      "question": "tydlig fråga om textinnehållet",
-      "options": ["rätt svar", "felaktigt alternativ 1", "felaktigt alternativ 2", "felaktigt alternativ 3"],
+      "question": "välformulerad fråga som testar förståelse",
+      "options": ["korrekt svar", "plausibelt men felaktigt alternativ", "annat trovärdigt felaktigt alternativ", "tredje realistiskt felaktigt alternativ"],
       "correctAnswer": 0,
-      "expectedAnswer": "kort rätt svar",
-      "explanation": "pedagogisk förklaring varför detta är rätt"
+      "expectedAnswer": "kort korrekt svar",
+      "explanation": "pedagogisk förklaring som hjälper eleven förstå konceptet bättre"
     }
   ]
 }`
         }
       ],
-      max_tokens: 1000,
-      temperature: 0.3,
+      max_tokens: 2000,
+      temperature: 0.4,
     });
 
     const content = response.choices[0]?.message?.content;
@@ -163,34 +172,82 @@ Returnera JSON:
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error details:', errorMessage);
 
-    // Fallback to simple questions if AI fails
-    if (text && text.length > 3) {
+    // Intelligent fallback: create questions from text content if AI fails
+    if (text && text.length > 10) {
       try {
-        const words = text.split(/\s+/).filter((word: string) => word.length > 3).slice(0, 8);
-        const fallbackQuestions: Question[] = words.map((word: string, index: number) => ({
-          id: index + 1,
-          question: `Vad betyder "${word}"?`,
-          options: [word, "Annat ord", "Tredje alternativ", "Fjärde alternativ"],
-          correctAnswer: 0,
-          expectedAnswer: word,
-          explanation: `Detta ord finns i texten: ${word}`
-        }));
+        console.log('🔄 AI generation failed, creating intelligent fallback questions...');
 
-        console.log('🔄 Using fallback questions from text');
+        // Extract sentences and key concepts for better fallback questions
+        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10).slice(0, 4);
+        const words = text.split(/\s+/).filter(word => word.length > 4 && word.length < 15).slice(0, 8);
 
-        // Shuffle fallback questions too
+        const fallbackQuestions: Question[] = [];
+        let questionId = 1;
+
+        // Create context-based questions from sentences
+        sentences.forEach((sentence) => {
+          const cleanSentence = sentence.trim();
+          if (cleanSentence.length > 15 && questionId <= 4) {
+            // Extract a key word or concept from the sentence
+            const keyWords = cleanSentence.split(/\s+/).filter(w => w.length > 4);
+            if (keyWords.length > 0) {
+              const keyWord = keyWords[Math.floor(keyWords.length / 2)];
+              fallbackQuestions.push({
+                id: questionId++,
+                question: `Enligt texten, vad nämns om "${keyWord}"?`,
+                options: [
+                  `Information från texten om ${keyWord}`,
+                  `Något som inte nämns i texten`,
+                  `Ett annat ämne som inte behandlas`,
+                  `Information som inte stämmer`
+                ],
+                correctAnswer: 0,
+                expectedAnswer: `Information från texten`,
+                explanation: `Detta baseras på innehållet i texten som handlar om ${keyWord}.`
+              });
+            }
+          }
+        });
+
+        // Add vocabulary questions to fill up to 8 questions
+        words.slice(0, 8 - fallbackQuestions.length).forEach((word) => {
+          fallbackQuestions.push({
+            id: questionId++,
+            question: `Vilket ord från texten beskriver bäst konceptet som behandlas?`,
+            options: [word, "Ett helt annat ämne", "Något som inte nämns", "Information som saknas"],
+            correctAnswer: 0,
+            expectedAnswer: word,
+            explanation: `"${word}" är ett viktigt begrepp i den analyserade texten.`
+          });
+        });
+
+        // Ensure we have at least some questions
+        if (fallbackQuestions.length === 0) {
+          fallbackQuestions.push({
+            id: 1,
+            question: "Vad handlar texten om?",
+            options: ["Textens huvudämne", "Något helt annat", "Information som saknas", "Oklart innehåll"],
+            correctAnswer: 0,
+            expectedAnswer: "Textens huvudämne",
+            explanation: "Baserat på den text som analyserats."
+          });
+        }
+
+        console.log('✅ Created', fallbackQuestions.length, 'intelligent fallback questions');
+
+        // Shuffle fallback questions
         const shuffledFallbackQuestions = shuffleAnswerOptions(fallbackQuestions);
 
         return NextResponse.json({
           subject: "Textanalys",
-          difficulty: "Lätt",
+          difficulty: "Medel",
           questions: shuffledFallbackQuestions,
           keywords: words,
           language: "svenska",
           isVocabulary: false
         });
-      } catch (fallbackError) {
-        console.log('🔄 Fallback from text also failed, using demo questions');
+      } catch {
+        console.log('🔄 Intelligent fallback also failed, using demo questions');
       }
     }
 

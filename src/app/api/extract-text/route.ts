@@ -21,31 +21,39 @@ export async function POST(request: NextRequest) {
     // Remove data:image/jpeg;base64, prefix if present
     const base64Data = imageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
 
-    console.log('🔍 Starting fast OCR text extraction...');
+    console.log('🔍 Starting enhanced OCR text extraction...');
     console.log('📊 Base64 data length:', base64Data.length);
 
-    // Fast OCR to extract text only
+    // Enhanced OCR to extract comprehensive text
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `Extrahera all text från bilden. Returnera som ren text, ordnad rad för rad.`
+              text: `Extrahera ALL text från bilden noggrant och komplett. Inkludera:
+- All huvudtext och brödtext
+- Rubriker och underrubriker
+- Bildtexter, faktarutor och sidotexter
+- Punktlistor och numrerade listor
+- Tabeller och diagram-text
+- Fotnoter och referenser
+
+Behåll textens struktur och organisation. Returnera som välformaterad text med tydlig hierarki.`
             },
             {
               type: "image_url",
               image_url: {
                 url: `data:image/jpeg;base64,${base64Data}`,
-                detail: "low"
+                detail: "high"
               }
             }
           ]
         }
       ],
-      max_tokens: 300,
+      max_tokens: 1500,
       temperature: 0,
     });
 
