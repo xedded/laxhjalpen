@@ -78,18 +78,20 @@ export async function POST(request: NextRequest) {
         },
         {
           role: "user",
-          content: `Analysera följande text från elevens läxa och skapa 8 pedagogiska frågor:
+          content: `Analysera följande text från elevens läxa och skapa 8 faktafrågor:
 
 "${text}"
 
-INSTRUKTIONER:
-• Analysera texten djupt och identifiera nyckelfakta, koncept, samband och teman
-• Skapa olika typer av frågor: faktafrågor, förståelsefrågor, analysfrågor och tillämpningsfrågor
-• Frågorna ska bygga på textens innehåll men du får vara kreativ i hur du formulerar dem
-• Inkludera både enkla faktafrågor och mer komplexa resonemangsfrågor
-• Se till att frågorna är pedagogiskt värdefulla och hjälper eleven att lära sig
-• Använd varierad svårighetsgrad där det är lämpligt
-• Gör svarsalternativen realistiska och trovärdiga
+INSTRUKTIONER FÖR FAKTAFRÅGOR:
+• Alla frågor ska vara direkta faktafrågor där svaren finns explicit i texten
+• Frågorna ska vara formulerade så att svaret kan ges i 1-3 ord (för muntligt förhör)
+• Fokusera på konkreta fakta som namn, platser, antal, vad något består av, vad något är
+• Exempel på bra frågor: "Vad består en galax av?", "Vilka ämnen ingår i NO?", "Hur många ben har en spindel?"
+• Svaren ska vara konkreta fakta som finns i texten, inte tolkningar eller analyser
+• Alla svarsalternativ måste vara korta och faktabaserade
+• Skapa trovärdiga felaktiga alternativ som också är korta fakta
+
+VIKTIGT: Varje fråga måste ha ett svar som finns direkt i den givna texten!
 
 Returnera JSON:
 {
@@ -98,11 +100,11 @@ Returnera JSON:
   "questions": [
     {
       "id": 1,
-      "question": "välformulerad fråga som testar förståelse",
-      "options": ["korrekt svar", "plausibelt men felaktigt alternativ", "annat trovärdigt felaktigt alternativ", "tredje realistiskt felaktigt alternativ"],
+      "question": "konkret faktafråga med svar som finns i texten",
+      "options": ["kort korrekt svar från texten", "kort felaktigt alternativ", "kort felaktigt alternativ", "kort felaktigt alternativ"],
       "correctAnswer": 0,
-      "expectedAnswer": "kort korrekt svar",
-      "explanation": "pedagogisk förklaring som hjälper eleven förstå konceptet bättre"
+      "expectedAnswer": "kort svar (1-3 ord)",
+      "explanation": "varför detta svar är korrekt enligt texten"
     }
   ]
 }`
@@ -172,82 +174,107 @@ Returnera JSON:
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error details:', errorMessage);
 
-    // Intelligent fallback: create questions from text content if AI fails
+    // Fact-based fallback: create questions from text content if AI fails
     if (text && text.length > 10) {
       try {
-        console.log('🔄 AI generation failed, creating intelligent fallback questions...');
+        console.log('🔄 AI generation failed, creating fact-based fallback questions...');
 
-        // Extract sentences and key concepts for better fallback questions
-        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10).slice(0, 4);
-        const words = text.split(/\s+/).filter(word => word.length > 4 && word.length < 15).slice(0, 8);
-
+        // Look for factual patterns in the text
+        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
         const fallbackQuestions: Question[] = [];
         let questionId = 1;
 
-        // Create context-based questions from sentences
-        sentences.forEach((sentence) => {
-          const cleanSentence = sentence.trim();
-          if (cleanSentence.length > 15 && questionId <= 4) {
-            // Extract a key word or concept from the sentence
-            const keyWords = cleanSentence.split(/\s+/).filter(w => w.length > 4);
-            if (keyWords.length > 0) {
-              const keyWord = keyWords[Math.floor(keyWords.length / 2)];
-              fallbackQuestions.push({
-                id: questionId++,
-                question: `Enligt texten, vad nämns om "${keyWord}"?`,
-                options: [
-                  `Information från texten om ${keyWord}`,
-                  `Något som inte nämns i texten`,
-                  `Ett annat ämne som inte behandlas`,
-                  `Information som inte stämmer`
-                ],
-                correctAnswer: 0,
-                expectedAnswer: `Information från texten`,
-                explanation: `Detta baseras på innehållet i texten som handlar om ${keyWord}.`
-              });
-            }
-          }
-        });
+        // Look for patterns that suggest facts
+        const factPatterns = [
+          /(\w+) består av ([\w\s,]+)/gi,  // "X består av Y"
+          /(\w+) är ([\w\s]+)/gi,          // "X är Y"
+          /det finns (\d+) ([\w\s]+)/gi,   // "det finns X antal Y"
+          /([\w\s]+) innehåller ([\w\s,]+)/gi, // "X innehåller Y"
+          /(\w+) kallas ([\w\s]+)/gi,      // "X kallas Y"
+          /([\w\s]+) bildas av ([\w\s,]+)/gi   // "X bildas av Y"
+        ];
 
-        // Add vocabulary questions to fill up to 8 questions
-        words.slice(0, 8 - fallbackQuestions.length).forEach((word) => {
-          fallbackQuestions.push({
-            id: questionId++,
-            question: `Vilket ord från texten beskriver bäst konceptet som behandlas?`,
-            options: [word, "Ett helt annat ämne", "Något som inte nämns", "Information som saknas"],
-            correctAnswer: 0,
-            expectedAnswer: word,
-            explanation: `"${word}" är ett viktigt begrepp i den analyserade texten.`
+        sentences.forEach((sentence) => {
+          if (questionId > 6) return; // Max 6 fact-based questions
+
+          factPatterns.forEach((pattern) => {
+            const matches = pattern.exec(sentence);
+            if (matches && questionId <= 6) {
+              const [, subject, answer] = matches;
+              if (subject && answer && answer.length < 30) {
+                const cleanAnswer = answer.trim().replace(/\.$/, '');
+                fallbackQuestions.push({
+                  id: questionId++,
+                  question: `Vad ${subject.toLowerCase().trim()}?`,
+                  options: [
+                    cleanAnswer,
+                    "Något annat",
+                    "Information som saknas",
+                    "Inte specificerat"
+                  ],
+                  correctAnswer: 0,
+                  expectedAnswer: cleanAnswer,
+                  explanation: `Enligt texten: ${sentence.trim()}`
+                });
+              }
+            }
           });
         });
+
+        // If no fact patterns found, create basic questions from key terms
+        if (fallbackQuestions.length < 3) {
+          const keyTerms = text.split(/\s+/).filter(word =>
+            word.length > 3 &&
+            word.length < 15 &&
+            /^[A-ZÅÄÖ]/.test(word) // Starts with capital letter
+          ).slice(0, 5);
+
+          keyTerms.forEach((term) => {
+            if (questionId <= 8) {
+              fallbackQuestions.push({
+                id: questionId++,
+                question: `Vad nämns i texten om ${term}?`,
+                options: [
+                  "Information från texten",
+                  "Inte nämnt",
+                  "Oklart",
+                  "Annat ämne"
+                ],
+                correctAnswer: 0,
+                expectedAnswer: "Information från texten",
+                explanation: `${term} nämns i den analyserade texten.`
+              });
+            }
+          });
+        }
 
         // Ensure we have at least some questions
         if (fallbackQuestions.length === 0) {
           fallbackQuestions.push({
             id: 1,
-            question: "Vad handlar texten om?",
-            options: ["Textens huvudämne", "Något helt annat", "Information som saknas", "Oklart innehåll"],
+            question: "Vad handlar huvudsakligen texten om?",
+            options: ["Textens huvudämne", "Något annat", "Oklart", "Inte specificerat"],
             correctAnswer: 0,
-            expectedAnswer: "Textens huvudämne",
-            explanation: "Baserat på den text som analyserats."
+            expectedAnswer: "Huvudämnet",
+            explanation: "Baserat på textens innehåll."
           });
         }
 
-        console.log('✅ Created', fallbackQuestions.length, 'intelligent fallback questions');
+        console.log('✅ Created', fallbackQuestions.length, 'fact-based fallback questions');
 
         // Shuffle fallback questions
         const shuffledFallbackQuestions = shuffleAnswerOptions(fallbackQuestions);
 
         return NextResponse.json({
-          subject: "Textanalys",
+          subject: "Faktatexter",
           difficulty: "Medel",
           questions: shuffledFallbackQuestions,
-          keywords: words,
+          keywords: [],
           language: "svenska",
           isVocabulary: false
         });
       } catch {
-        console.log('🔄 Intelligent fallback also failed, using demo questions');
+        console.log('🔄 Fact-based fallback also failed, using demo questions');
       }
     }
 
